@@ -26,7 +26,7 @@ function Home() {
             setSelectedUser={setSelectedUser}
           />
 
-          <RightSideBar />
+          <RightSideBar selectedUser={selectedUser} />
         </div>
       </div>
     </div>
