@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { generateToken } from "../lib/utils.js";
+import cloudinary from "../lib/cloudinary.js";
 export const SignUp = async (req, res) => {
   try {
     const { email, fullName, password, bio } = req.body;
@@ -101,6 +102,56 @@ export const GetCurrentUser = async (req, res) => {
     res.status(200).json({ user });
   } catch (error) {
     console.error("Error in GetCurrentUser:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.userId; // FIXED
+
+    const { fullName, bio, profilePicture } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (fullName) user.fullName = fullName;
+    if (bio) user.bio = bio;
+
+    if (profilePicture) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(profilePicture, {
+          folder: "profiles",
+        });
+
+        if (uploadResult?.secure_url) {
+          user.profilePic = uploadResult.secure_url; // FIXED
+        }
+      } catch (uploadErr) {
+        console.error("Cloudinary upload error:", uploadErr);
+        return res.status(500).json({
+          message: "Failed to upload profile picture.",
+        });
+      }
+    }
+
+    await user.save();
+
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    res.status(200).json({
+      message: "Profile updated successfully.",
+      user: userObj,
+    });
+  } catch (error) {
+    console.error("Error in updateProfile:", error);
     res.status(500).json({ message: "Server error." });
   }
 };

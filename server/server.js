@@ -1,31 +1,48 @@
 import express from "express";
 import http from "http";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import "dotenv/config";
 import { connectDB, disconnectDB } from "./lib/db.js";
+import userRouter from "./routes/userRoutes.js";
+
 const app = express();
 const server = http.createServer(app);
-app.use(express.json({ limit: "4mb" }));
-app.use(cors());
+
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use("/api/status", (req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });
 });
+
+app.use("/api/users", userRouter);
+
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:5173",
+    credentials: true,
   },
 });
 
 io.on("connection", (socket) => {
-  console.log("a user connected:", socket.id);
+  console.log("Connected:", socket.id);
 
   socket.on("disconnect", () => {
-    console.log("user disconnected:", socket.id);
+    console.log("Disconnected:", socket.id);
   });
 
   socket.on("chat message", (msg) => {
-    console.log("message received:", msg);
+    console.log("Message:", msg);
     io.emit("chat message", msg);
   });
 });
@@ -45,38 +62,3 @@ async function start() {
 }
 
 start();
-
-// Graceful shutdown: close http server, socket.io and disconnect DB
-const gracefulShutdown = (signal) => {
-  console.log(`Received ${signal} - shutting down gracefully`);
-  // stop accepting new connections
-  server.close(async (err) => {
-    if (err) {
-      console.error("Error closing server:", err);
-      process.exit(1);
-    }
-    try {
-      await disconnectDB();
-    } catch (e) {
-      console.error("Error disconnecting DB:", e);
-    }
-    console.log("Shutdown complete");
-    process.exit(0);
-  });
-
-  // Close socket.io immediately
-  try {
-    io.close();
-  } catch (e) {
-    // ignore
-  }
-
-  // Force shutdown if not exited in time
-  setTimeout(() => {
-    console.error("Forcing shutdown");
-    process.exit(1);
-  }, 10_000);
-};
-
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));

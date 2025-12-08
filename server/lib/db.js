@@ -11,8 +11,6 @@ export async function connectDB(uri = process.env.MONGODB_URI) {
   }
 
   try {
-    // modern mongoose/mongodb driver no longer requires these options
-    // pass the uri directly and let mongoose choose sensible defaults
     await mongoose.connect(uri);
     console.log("MongoDB connected");
   } catch (err) {
