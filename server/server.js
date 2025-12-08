@@ -6,7 +6,7 @@ import { Server } from "socket.io";
 import "dotenv/config";
 import { connectDB, disconnectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
-
+import messageRouter from "./routes/messageRouter.js";
 const app = express();
 const server = http.createServer(app);
 
@@ -26,24 +26,29 @@ app.use("/api/status", (req, res) => {
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/messages", messageRouter);
 
-const io = new Server(server, {
+export const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
     credentials: true,
   },
 });
 
+export const userSocketMap = {};
+
 io.on("connection", (socket) => {
-  console.log("Connected:", socket.id);
+  const userId = socket.handshake.query.userId;
+  console.log("User Connected", userId);
+
+  if (userId) userSocketMap[userId] = socket.id;
+
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
-    console.log("Disconnected:", socket.id);
-  });
-
-  socket.on("chat message", (msg) => {
-    console.log("Message:", msg);
-    io.emit("chat message", msg);
+    console.log("User Disconnected", userId);
+    delete userSocketMap[userId];
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
 
