@@ -4,7 +4,7 @@ import { formatMessageTime } from "../lib/utils";
 import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 
-function ChatContainer() {
+function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const { selectedUser, setSelectedUser, messages, getMessages, sendMessage } =
     useContext(ChatContext);
 
@@ -101,7 +101,16 @@ function ChatContainer() {
           className="md:hidden w-7 cursor-pointer"
           onClick={() => setSelectedUser(null)}
         />
-        <img src={assets.help_icon} alt="help" className="max-md:hidden w-5" />
+        <img
+          src={assets.help_icon}
+          alt="help"
+          className={`max-md:hidden w-5 cursor-pointer transition-all ${
+            showRightSidebar
+              ? "opacity-100 scale-110"
+              : "opacity-70 hover:opacity-100"
+          }`}
+          onClick={() => setShowRightSidebar(!showRightSidebar)}
+        />
       </div>
 
       <div

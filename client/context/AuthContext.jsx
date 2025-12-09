@@ -8,7 +8,6 @@ export const AuthContext = createContext();
 const BACKEND_ORIGIN =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
-// Extract base URL without /api for socket connection
 const SOCKET_URL = BACKEND_ORIGIN.replace(/\/api$/, "");
 
 axios.defaults.baseURL = `${BACKEND_ORIGIN}`;
