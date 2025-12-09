@@ -55,6 +55,15 @@ app.use("/api/status", (req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });
 });
 
+// Test endpoints (public - no auth required)
+app.get("/api/users/test", (req, res) => {
+  res.json({ message: "Users endpoint is working!", timestamp: Date.now() });
+});
+
+app.get("/api/messages/test", (req, res) => {
+  res.json({ message: "Messages endpoint is working!", timestamp: Date.now() });
+});
+
 app.use("/api/users", userRouter);
 app.use("/api/messages", messageRouter);
 
