@@ -47,7 +47,7 @@ function LoginPage() {
             onChange={(e) => setFullName(e.target.value)}
             value={fullName}
             type="text"
-            className="p-2 border border-gray-500 rounded-md focus:outline-none"
+            className="p-2 border border-gray-500 rounded-md focus:outline-none bg-white/10 text-white placeholder-gray-400"
             placeholder="Full Name"
             required
           />
@@ -61,7 +61,7 @@ function LoginPage() {
               type="email"
               placeholder="Email Address"
               required
-              className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/10 text-white placeholder-gray-400"
             />
             <input
               onChange={(e) => setPassword(e.target.value)}
@@ -69,7 +69,7 @@ function LoginPage() {
               type="password"
               placeholder="Password"
               required
-              className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/10 text-white placeholder-gray-400"
             />
           </>
         )}
@@ -80,7 +80,7 @@ function LoginPage() {
             rows={4}
             placeholder="Provide a short Bio..."
             required
-            className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/10 text-white placeholder-gray-400"
           />
         )}
         <button
@@ -89,30 +89,30 @@ function LoginPage() {
         >
           {currState === "Sign Up" ? "Create Account" : "Log In"}
         </button>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-gray-300">
           <input type="checkbox" />
           <p>Agree to terms of use and Privacy Policy</p>
         </div>
         <div className="flex flex-col gap-2">
           {currState === "Sign Up" ? (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-300">
               Already have an account?{" "}
               <span
                 onClick={() => {
                   setCurrState("Login");
                   setIsDataSubmitted(false);
                 }}
-                className="font-medium text-violet-500 cursor-pointer"
+                className="font-medium text-violet-400 cursor-pointer hover:text-violet-300"
               >
                 Login here
               </span>
             </p>
           ) : (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-300">
               Create an account{" "}
               <span
                 onClick={() => setCurrState("Sign Up")}
-                className="font-medium text-violet-500 cursor-pointer"
+                className="font-medium text-violet-400 cursor-pointer hover:text-violet-300"
               >
                 Click here
               </span>
