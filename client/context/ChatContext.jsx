@@ -1,4 +1,3 @@
-// ChatContext.jsx
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "./AuthContext";
 
@@ -15,7 +14,7 @@ export const ChatProvider = ({ children }) => {
 
   const getUsers = async () => {
     try {
-      const res = await axios.get("/messages/users");
+      const res = await axios.get("/api/messages/users");
       setUsers(res.data.users || []);
       setUnseenMessages(res.data.unseenMessages || {});
     } catch (err) {
@@ -26,7 +25,7 @@ export const ChatProvider = ({ children }) => {
   const getMessages = async (userId) => {
     if (!userId) return;
     try {
-      const res = await axios.get(`/messages/${userId}`); // ✅
+      const res = await axios.get(`/api/messages/${userId}`);
       setMessages(res.data.messages || []);
 
       setUnseenMessages((prev) => {
@@ -43,10 +42,10 @@ export const ChatProvider = ({ children }) => {
     if (!selectedUser) return;
 
     try {
-      const res = await axios.post(
-        `/messages/send/${selectedUser._id}`, // ✅
-        { text, image }
-      );
+      const res = await axios.post(`/api/messages/send/${selectedUser._id}`, {
+        text,
+        image,
+      });
 
       const newMsg = res.data.newMessage;
       setMessages((prev) => [...prev, newMsg]);
@@ -64,7 +63,7 @@ export const ChatProvider = ({ children }) => {
         setMessages((prev) => [...prev, newMessage]);
 
         axios
-          .put(`/messages/seen/${newMessage._id}`) // ✅
+          .put(`/api/messages/seen/${newMessage._id}`)
           .catch((err) => console.error("mark seen error:", err));
 
         setUnseenMessages((prev) => {
