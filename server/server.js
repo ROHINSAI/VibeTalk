@@ -38,6 +38,19 @@ app.use(
   })
 );
 
+// Root route
+app.get("/", (req, res) => {
+  res.json({
+    message: "VibeTalk API Server",
+    status: "running",
+    endpoints: {
+      status: "/api/status",
+      users: "/api/users",
+      messages: "/api/messages",
+    },
+  });
+});
+
 app.use("/api/status", (req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });
 });
