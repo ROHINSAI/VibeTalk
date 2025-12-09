@@ -23,7 +23,6 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
     }
   }, [selectedUser, getMessages]);
 
-  // Auto-scroll only if user is near the bottom. If user scrolled up, don't force scroll.
   useEffect(() => {
     if (!messagesRef.current) return;
 

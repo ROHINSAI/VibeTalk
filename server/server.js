@@ -14,9 +14,26 @@ app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.indexOf(origin) !== -1 ||
+        allowedOrigins.some((allowed) => origin?.includes(allowed))
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -30,8 +47,9 @@ app.use("/api/messages", messageRouter);
 
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
+    methods: ["GET", "POST"],
   },
 });
 
@@ -56,16 +74,29 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3000;
 
-async function start() {
-  try {
-    await connectDB();
-    server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.error("Failed to start server:", err);
-    process.exit(1);
+// Connect to database
+let dbConnected = false;
+const initDB = async () => {
+  if (!dbConnected) {
+    try {
+      await connectDB();
+      dbConnected = true;
+      console.log("Database connected");
+    } catch (err) {
+      console.error("Database connection failed:", err);
+    }
   }
+};
+
+// Initialize DB connection
+initDB();
+
+// For local development
+if (process.env.NODE_ENV !== "production") {
+  server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 }
 
-start();
+// Export for Vercel
+export default app;
