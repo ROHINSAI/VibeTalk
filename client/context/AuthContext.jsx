@@ -1,3 +1,4 @@
+// AuthContext.jsx
 import { createContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -7,8 +8,6 @@ export const AuthContext = createContext();
 
 const BACKEND_ORIGIN =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
-
-const SOCKET_URL = BACKEND_ORIGIN.replace(/\/api$/, "");
 
 axios.defaults.baseURL = `${BACKEND_ORIGIN}/api`;
 axios.defaults.withCredentials = true;
@@ -29,8 +28,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // connect socket for authenticated user
-    const newSocket = io(SOCKET_URL, {
+    const newSocket = io(BACKEND_ORIGIN, {
       query: { userId: String(user._id) },
       withCredentials: true,
     });
@@ -42,18 +40,18 @@ export const AuthProvider = ({ children }) => {
     });
 
     newSocket.on("connect", () => {
-      console.log("✅ Socket connected! ID:", newSocket.id, "User:", user._id);
+      console.log("✅ Socket connected!", newSocket.id, "user:", user._id);
     });
 
-    newSocket.on("connect_error", (error) => {
-      console.error("❌ Socket connection error:", error);
+    newSocket.on("connect_error", (err) => {
+      console.error("❌ Socket connection error:", err);
     });
   };
+
   const checkAuth = async () => {
     try {
       const res = await axios.get("/users/check");
       const user = res.data.user;
-
       setAuthUser(user);
       connectSocket(user);
     } catch (error) {
@@ -90,9 +88,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post("/users/logout");
-
       toast.success("Logged out successfully");
-
       setAuthUser(null);
       socket?.disconnect();
       setSocket(null);
@@ -104,17 +100,15 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updatedData) => {
     try {
       const res = await axios.put("/users/update-profile", updatedData);
-
       toast.success("Profile updated");
-
       setAuthUser(res.data.user);
-
       return res.data.user;
     } catch (err) {
       toast.error(err.response?.data?.message || "Profile update failed");
       return null;
     }
   };
+
   const value = {
     axios,
     authUser,
