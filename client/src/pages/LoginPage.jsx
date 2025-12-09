@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import assets from "../assets/assets.js";
+import { AuthContext } from "../../context/AuthContext.jsx";
 function LoginPage() {
   const [currState, setCurrState] = useState("Sign Up");
   const [fullName, setFullName] = useState("");
@@ -7,24 +8,20 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
+
+  const { login } = useContext(AuthContext);
   const onSubmitHandler = (e) => {
     e.preventDefault();
     if (currState === "Sign Up" && !isDataSubmitted) {
       setIsDataSubmitted(true);
-    } else {
-      console.log({
-        fullName: currState === "Sign Up" ? fullName : undefined,
-        email,
-        password,
-        bio: currState === "Sign Up" ? bio : undefined,
-      });
-      setFullName("");
-      setEmail("");
-      setPassword("");
-      setBio("");
-      setIsDataSubmitted(false);
-      setCurrState("Login");
+      return;
     }
+    login(currState === "Sign Up" ? "signup" : "login", {
+      fullName: fullName,
+      email,
+      password,
+      bio,
+    });
   };
   return (
     <div className="min-h-screen bg-cover bg-center flex items-center justify-center gap-8 sm:justify-evenly max-sm:flex-col backdrop-blur-2xl">
