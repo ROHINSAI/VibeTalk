@@ -1,21 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import assets from "../assets/assets";
+import { AuthContext } from "../../context/AuthContext.jsx";
 
 function ProfilePage() {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const { authUser, updateProfile } = useContext(AuthContext);
+
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(authUser?.ProfilePic || null);
+
+  const [name, setName] = useState(authUser?.fullName || "");
+  const [bio, setBio] = useState(
+    authUser?.bio || "Hey there, I am using VibeTalk!"
+  );
+
   const navigate = useNavigate();
-  const [name, setName] = useState("Martin Johnson");
-  const [bio, setBio] = useState("Hey there, I am using VibeTalk!");
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
-    if (file) setSelectedImage(file);
+    if (file) {
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate("/");
+    if (!imageFile) {
+      await updateProfile({ fullName: name, bio });
+      navigate("/");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const dataUrl = reader.result;
+      await updateProfile({
+        fullName: name,
+        bio,
+        profilePicture: dataUrl,
+      });
+      navigate("/");
+    };
+    reader.readAsDataURL(imageFile);
   };
 
   return (
@@ -39,16 +66,13 @@ function ProfilePage() {
               hidden
             />
             <img
-              src={
-                selectedImage
-                  ? URL.createObjectURL(selectedImage)
-                  : assets.avatar_icon
-              }
+              src={previewUrl || assets.avatar_icon}
               alt="Avatar"
-              className={`w-12 h-12 ${selectedImage ? "rounded-full" : ""}`}
+              className={`w-12 h-12 ${previewUrl ? "rounded-full" : ""}`}
             />
             Upload Profile image
           </label>
+
           <input
             type="text"
             value={name}
@@ -57,6 +81,7 @@ function ProfilePage() {
             required
             className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
@@ -64,16 +89,18 @@ function ProfilePage() {
             placeholder="Bio"
             className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+
           <button
             type="submit"
-            className="bg-gradient-to-r from-purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-20 rounded-full cursor-pointer w-max "
+            className="bg-gradient-to-r from-purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-20 rounded-full cursor-pointer w-max"
           >
             Save
           </button>
         </form>
+
         <img
-          src={assets.logo_icon}
-          alt="Logo"
+          src={previewUrl || assets.logo_icon}
+          alt="Profile"
           className="max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10"
         />
       </div>

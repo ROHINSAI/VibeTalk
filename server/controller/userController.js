@@ -108,8 +108,7 @@ export const GetCurrentUser = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const userId = req.userId; // FIXED
-
+    const userId = req.userId;
     const { fullName, bio, profilePicture } = req.body;
 
     if (!userId) {
@@ -131,7 +130,7 @@ export const updateProfile = async (req, res) => {
         });
 
         if (uploadResult?.secure_url) {
-          user.profilePic = uploadResult.secure_url; // FIXED
+          user.ProfilePic = uploadResult.secure_url;
         }
       } catch (uploadErr) {
         console.error("Cloudinary upload error:", uploadErr);
