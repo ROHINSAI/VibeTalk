@@ -10,7 +10,7 @@ const BACKEND_ORIGIN =
 
 const SOCKET_URL = BACKEND_ORIGIN.replace(/\/api$/, "");
 
-axios.defaults.baseURL = `${BACKEND_ORIGIN}`;
+axios.defaults.baseURL = `${BACKEND_ORIGIN}/api`;
 axios.defaults.withCredentials = true;
 
 export { BACKEND_ORIGIN as backendURL };
