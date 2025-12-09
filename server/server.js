@@ -44,15 +44,12 @@ io.on("connection", (socket) => {
   if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
     const onlineUserIds = Object.keys(userSocketMap);
-    console.log("Online users:", onlineUserIds);
     io.emit("getOnlineUsers", onlineUserIds);
   }
 
   socket.on("disconnect", () => {
-    console.log("User Disconnected:", userId);
     delete userSocketMap[userId];
     const onlineUserIds = Object.keys(userSocketMap);
-    console.log("Online users after disconnect:", onlineUserIds);
     io.emit("getOnlineUsers", onlineUserIds);
   });
 });

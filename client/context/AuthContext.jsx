@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    console.log("Connecting socket for user:", user._id, "to:", SOCKET_URL);
+    // connect socket for authenticated user
     const newSocket = io(SOCKET_URL, {
       query: { userId: String(user._id) },
       withCredentials: true,
@@ -39,7 +39,6 @@ export const AuthProvider = ({ children }) => {
     setSocket(newSocket);
 
     newSocket.on("getOnlineUsers", (users) => {
-      console.log("✅ Online users received:", users);
       setOnlineUsers(users);
     });
 

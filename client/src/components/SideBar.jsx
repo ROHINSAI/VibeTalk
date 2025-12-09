@@ -69,7 +69,11 @@ function SideBar() {
           return (
             <div
               key={userIdStr}
-              onClick={() => setSelectedUser(user)}
+              onClick={() =>
+                setSelectedUser(
+                  selectedUser && selectedUser._id === user._id ? null : user
+                )
+              }
               className={`flex items-center gap-2 p-3 mb-3 bg-[#282142] border border-gray-600 rounded-xl cursor-pointer relative hover:bg-[#3e3a5c] ${
                 selectedUser?._id === user._id ? "bg-[#4e4a7c]" : ""
               }`}

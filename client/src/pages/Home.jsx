@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useContext } from "react";
 import RightSideBar from "../components/RightSideBar";
 import SideBar from "../components/SideBar";
 import ChatContainer from "../components/ChatContainer";
+import { ChatContext } from "../../context/ChatContext";
 
 function Home() {
-  const [selectedUser, setSelectedUser] = useState(false);
+  const { selectedUser } = useContext(ChatContext);
 
   return (
     <div className="w-screen h-screen overflow-hidden flex items-center justify-center">
@@ -18,10 +19,7 @@ function Home() {
         >
           <SideBar />
 
-          <ChatContainer
-            selectedUser={selectedUser}
-            setSelectedUser={setSelectedUser}
-          />
+          <ChatContainer />
 
           <RightSideBar selectedUser={selectedUser} />
         </div>

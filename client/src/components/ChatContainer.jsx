@@ -1,31 +1,104 @@
-import assets, { messagesDummyData } from "../assets/assets";
-import { useEffect, useRef } from "react";
+import assets from "../assets/assets";
+import { useContext, useEffect, useRef, useState } from "react";
 import { formatMessageTime } from "../lib/utils";
+import { ChatContext } from "../../context/ChatContext";
+import { AuthContext } from "../../context/AuthContext";
 
-function ChatContainer({ selectedUser, setSelectedUser }) {
+function ChatContainer() {
+  const { selectedUser, setSelectedUser, messages, getMessages, sendMessage } =
+    useContext(ChatContext);
+
+  const { authUser, onlineUsers } = useContext(AuthContext);
+
+  const [text, setText] = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
   const scrollEnd = useRef(null);
   const messagesRef = useRef(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
-    scrollEnd.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messagesDummyData.length]);
+    if (selectedUser) {
+      getMessages(selectedUser._id);
+    }
+  }, [selectedUser, getMessages]);
+
+  // Auto-scroll only if user is near the bottom. If user scrolled up, don't force scroll.
+  useEffect(() => {
+    if (!messagesRef.current) return;
+
+    const el = messagesRef.current;
+    const distanceFromBottom =
+      el.scrollHeight - (el.scrollTop + el.clientHeight);
+
+    // if user is at/near bottom, scroll; otherwise leave their position
+    if (isAtBottom || distanceFromBottom < 150) {
+      scrollEnd.current?.scrollIntoView({ behavior: "smooth" });
+      setIsAtBottom(true);
+    }
+  }, [messages, isAtBottom]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!text.trim() && !imagePreview) return;
+
+    try {
+      await sendMessage({
+        text: text.trim(),
+        image: imagePreview,
+      });
+
+      setText("");
+      setImagePreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
+  };
+
+  const isOnline =
+    selectedUser && onlineUsers?.includes(String(selectedUser._id));
 
   return selectedUser ? (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex items-center py-3 gap-3 mx-4 border-b border-stone-500">
         <img
-          src={assets.profile_martin}
+          src={selectedUser.ProfilePic || assets.avatar_icon}
           className="w-8 rounded-full"
-          alt="Profile Martin"
+          alt={selectedUser.fullName}
         />
         <p className="flex-1 text-lg text-white flex items-center gap-2">
-          Martin Johnson
-          <span className="w-2 h-2 rounded-full bg-green-600" />
+          {selectedUser.fullName}
+          <span
+            className={`w-2 h-2 rounded-full ${
+              isOnline ? "bg-green-600" : "bg-gray-500"
+            }`}
+          />
         </p>
         <img
           src={assets.arrow_icon}
           alt="Arrow Icon"
-          className="md:hidden w-7"
+          className="md:hidden w-7 cursor-pointer"
           onClick={() => setSelectedUser(null)}
         />
         <img src={assets.help_icon} alt="help" className="max-md:hidden w-5" />
@@ -33,71 +106,145 @@ function ChatContainer({ selectedUser, setSelectedUser }) {
 
       <div
         ref={messagesRef}
+        onScroll={() => {
+          const el = messagesRef.current;
+          if (!el) return;
+          const distanceFromBottom =
+            el.scrollHeight - (el.scrollTop + el.clientHeight);
+          setIsAtBottom(distanceFromBottom < 150);
+        }}
         className="flex-1 overflow-y-auto p-3 pb-4 min-h-0"
       >
-        {messagesDummyData.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex items-end justify-end gap-2${
-              msg.senderId !== "680f50e4f10f3cd28382ecf9"
-                ? " flex-row-reverse"
-                : ""
-            }`}
-          >
-            {msg.image ? (
-              <img
-                src={msg.image}
-                alt="message"
-                className="max-w-[230px] border border-gray-700 rounded-lg overflow-hidden mb-8"
-              />
-            ) : (
-              <p
-                className={`p-2 max-w-[200px] md:text-sm font-light rounded-lg mb-8 break-all bg-violet-500/30 text-white${
-                  msg.senderId === "680f50e4f10f3cd28382ecf9"
-                    ? " rounded-br-none"
-                    : " rounded-bl-none bg-[#4e4a7c]"
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-400">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+          messages.map((msg, index) => {
+            const isSentByMe = msg.senderId === authUser?._id;
+            return (
+              <div
+                key={msg._id || index}
+                className={`flex items-end gap-2 mb-4 ${
+                  isSentByMe ? "justify-end" : "justify-start"
                 }`}
               >
-                {msg.text}
-              </p>
-            )}
-            <div className="text-center text-xs">
-              <img
-                src={
-                  msg.senderId === "680f50e4f10f3cd28382ecf9"
-                    ? assets.avatar_icon
-                    : assets.profile_martin
-                }
-                alt="avatar"
-                className="w-7 rounded-full"
-              />
-              <p className="text-gray-500">
-                {formatMessageTime(msg.createdAt)}
-              </p>
-            </div>
-          </div>
-        ))}
+                {!isSentByMe && (
+                  <img
+                    src={selectedUser.ProfilePic || assets.avatar_icon}
+                    alt="avatar"
+                    className="w-7 h-7 rounded-full"
+                  />
+                )}
+
+                <div
+                  className={`flex flex-col ${
+                    isSentByMe ? "items-end" : "items-start"
+                  }`}
+                >
+                  {msg.image ? (
+                    <img
+                      src={msg.image}
+                      alt="message"
+                      className="max-w-[230px] border border-gray-700 rounded-lg overflow-hidden"
+                    />
+                  ) : (
+                    <p
+                      className={`p-2 max-w-[200px] md:text-sm font-light rounded-lg break-words ${
+                        isSentByMe
+                          ? "bg-violet-500/30 text-white rounded-br-none"
+                          : "bg-[#4e4a7c] text-white rounded-bl-none"
+                      }`}
+                    >
+                      {msg.text}
+                    </p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    {formatMessageTime(msg.createdAt)}
+                  </p>
+                </div>
+
+                {isSentByMe && (
+                  <img
+                    src={authUser.ProfilePic || assets.avatar_icon}
+                    alt="avatar"
+                    className="w-7 h-7 rounded-full"
+                  />
+                )}
+              </div>
+            );
+          })
+        )}
         <div ref={scrollEnd} />
       </div>
 
-      <div className="flex items-center gap-3 p-3">
+      {/* Scroll-to-bottom button when user scrolled up */}
+      {!isAtBottom && (
+        <div className="absolute right-6 bottom-24">
+          <button
+            onClick={() => {
+              scrollEnd.current?.scrollIntoView({ behavior: "smooth" });
+              setIsAtBottom(true);
+            }}
+            className="bg-violet-500/80 text-white px-3 py-1 rounded-full shadow-lg"
+          >
+            ↓ New
+          </button>
+        </div>
+      )}
+
+      {imagePreview && (
+        <div className="mx-3 mb-2 relative">
+          <img
+            src={imagePreview}
+            alt="Preview"
+            className="max-w-[150px] rounded-lg border border-gray-600"
+          />
+          <button
+            onClick={removeImage}
+            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSendMessage}
+        className="flex items-center gap-3 p-3"
+      >
         <div className="flex-1 flex items-center bg-gray-100/12 px-3 rounded-full">
           <input
             type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
             placeholder="Send a message"
-            className="flex-1 text-sm p-3 border-none rounded-lg outline-none text-white placeholder-gray-400"
+            className="flex-1 text-sm p-3 border-none rounded-lg outline-none text-white placeholder-gray-400 bg-transparent"
           />
-          <input type="file" id="image" accept="image/png, image/jpeg" hidden />
+          <input
+            ref={fileInputRef}
+            type="file"
+            id="image"
+            accept="image/png, image/jpeg, image/jpg, image/webp"
+            onChange={handleImageChange}
+            hidden
+          />
           <label htmlFor="image">
             <img
               src={assets.gallery_icon}
-              alt=""
+              alt="Upload"
               className="w-5 mr-2 cursor-pointer"
             />
           </label>
         </div>
-        <img src={assets.send_button} alt="" className="w-7 cursor-pointer" />
-      </div>
+        <button type="submit">
+          <img
+            src={assets.send_button}
+            alt="Send"
+            className="w-7 cursor-pointer"
+          />
+        </button>
+      </form>
     </div>
   ) : (
     <div className="flex flex-col items-center justify-center gap-2 text-gray-500 bg-white/10 max-md:hidden h-full">
