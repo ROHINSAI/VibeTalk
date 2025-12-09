@@ -8,6 +8,9 @@ export const AuthContext = createContext();
 const BACKEND_ORIGIN =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
+// Extract base URL without /api for socket connection
+const SOCKET_URL = BACKEND_ORIGIN.replace(/\/api$/, "");
+
 axios.defaults.baseURL = `${BACKEND_ORIGIN}`;
 axios.defaults.withCredentials = true;
 
@@ -19,17 +22,33 @@ export const AuthProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   const connectSocket = (user) => {
-    if (!user || socket) return;
+    if (!user || socket) {
+      console.log("connectSocket skipped:", {
+        hasUser: !!user,
+        hasSocket: !!socket,
+      });
+      return;
+    }
 
-    const newSocket = io(BACKEND_ORIGIN, {
-      query: { userId: user._id },
+    console.log("Connecting socket for user:", user._id, "to:", SOCKET_URL);
+    const newSocket = io(SOCKET_URL, {
+      query: { userId: String(user._id) },
       withCredentials: true,
     });
 
     setSocket(newSocket);
 
     newSocket.on("getOnlineUsers", (users) => {
+      console.log("✅ Online users received:", users);
       setOnlineUsers(users);
+    });
+
+    newSocket.on("connect", () => {
+      console.log("✅ Socket connected! ID:", newSocket.id, "User:", user._id);
+    });
+
+    newSocket.on("connect_error", (error) => {
+      console.error("❌ Socket connection error:", error);
     });
   };
   const checkAuth = async () => {

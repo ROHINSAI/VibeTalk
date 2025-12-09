@@ -16,10 +16,7 @@ function Home() {
               : "md:grid-cols-2"
           }`}
         >
-          <SideBar
-            selectedUser={selectedUser}
-            setSelectedUser={setSelectedUser}
-          />
+          <SideBar />
 
           <ChatContainer
             selectedUser={selectedUser}
