@@ -14,7 +14,7 @@ export const ChatProvider = ({ children }) => {
 
   const getUsers = async () => {
     try {
-      const res = await axios.get("/api/messages/users");
+      const res = await axios.get("/messages/users");
       setUsers(res.data.users || []);
       setUnseenMessages(res.data.unseenMessages || {});
     } catch (err) {
@@ -25,7 +25,7 @@ export const ChatProvider = ({ children }) => {
   const getMessages = async (userId) => {
     if (!userId) return;
     try {
-      const res = await axios.get(`/api/messages/${userId}`);
+      const res = await axios.get(`/messages/${userId}`);
       setMessages(res.data.messages || []);
 
       setUnseenMessages((prev) => {
@@ -42,7 +42,7 @@ export const ChatProvider = ({ children }) => {
     if (!selectedUser) return;
 
     try {
-      const res = await axios.post(`/api/messages/send/${selectedUser._id}`, {
+      const res = await axios.post(`/messages/send/${selectedUser._id}`, {
         text,
         image,
       });
@@ -63,7 +63,7 @@ export const ChatProvider = ({ children }) => {
         setMessages((prev) => [...prev, newMessage]);
 
         axios
-          .put(`/api/messages/seen/${newMessage._id}`)
+          .put(`/messages/seen/${newMessage._id}`)
           .catch((err) => console.error("mark seen error:", err));
 
         setUnseenMessages((prev) => {

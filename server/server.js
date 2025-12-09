@@ -24,7 +24,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.indexOf(origin) !== -1 ||
@@ -39,15 +38,14 @@ app.use(
   })
 );
 
-// Root route
 app.get("/", (req, res) => {
   res.json({
     message: "VibeTalk API Server",
     status: "running",
     endpoints: {
-      status: "/api/status",
-      users: "/api/users",
-      messages: "/api/messages",
+      status: "/status",
+      users: "/users",
+      messages: "/messages",
     },
   });
 });
@@ -56,7 +54,6 @@ app.use("/api/status", (req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });
 });
 
-// Test endpoints (public - no auth required)
 app.get("/api/users/test", (req, res) => {
   res.json({ message: "Users endpoint is working!", timestamp: Date.now() });
 });
@@ -65,8 +62,8 @@ app.get("/api/messages/test", (req, res) => {
   res.json({ message: "Messages endpoint is working!", timestamp: Date.now() });
 });
 
-app.use("/api/users", userRouter);
-app.use("/api/messages", messageRouter);
+app.use("/users", userRouter);
+app.use("/messages", messageRouter);
 
 export const io = new Server(server, {
   cors: {
@@ -97,7 +94,6 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Connect to database
 let dbConnected = false;
 const initDB = async () => {
   if (!dbConnected) {
@@ -111,15 +107,12 @@ const initDB = async () => {
   }
 };
 
-// Initialize DB connection
 initDB();
 
-// For local development
 if (process.env.NODE_ENV !== "production") {
   server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }
 
-// Export for Vercel
 export default app;

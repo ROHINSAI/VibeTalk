@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await axios.get("/api/users/check");
+      const res = await axios.get("/users/check");
       const user = res.data.user;
       setAuthUser(user);
       connectSocket(user);
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (state, credentials) => {
     try {
-      const { data } = await axios.post(`/api/users/${state}`, credentials);
+      const { data } = await axios.post(`/users/${state}`, credentials);
 
       await checkAuth();
 
@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post("/api/users/logout"); // 👈
+      await axios.post("/users/logout"); // 👈
 
       toast.success("Logged out successfully");
       setAuthUser(null);
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (updatedData) => {
     try {
-      const res = await axios.put("/api/users/update-profile", updatedData);
+      const res = await axios.put("/users/update-profile", updatedData);
       toast.success("Profile updated");
       setAuthUser(res.data.user);
       return res.data.user;
