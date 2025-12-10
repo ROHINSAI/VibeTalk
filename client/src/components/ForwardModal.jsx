@@ -6,23 +6,37 @@ import toast from "react-hot-toast";
 
 export default function ForwardModal({ open, onClose, message }) {
   const { axios } = useContext(AuthContext);
-  const { users, getUsers } = useContext(ChatContext);
-  const [selected, setSelected] = useState(new Set());
+  const { users, getUsers, groups, getGroups } = useContext(ChatContext);
+  const [selectedFriends, setSelectedFriends] = useState(new Set());
+  const [selectedGroups, setSelectedGroups] = useState(new Set());
+  const [activeTab, setActiveTab] = useState("friends"); // "friends" or "groups"
 
   useEffect(() => {
     if (open) {
-      // refresh friends list
+      // refresh friends and groups list
       getUsers();
-      setSelected(new Set());
+      getGroups();
+      setSelectedFriends(new Set());
+      setSelectedGroups(new Set());
     }
   }, [open]);
 
   if (!open) return null;
 
   const friends = users || [];
+  const groupsList = groups || [];
 
-  const toggle = (id) => {
-    setSelected((prev) => {
+  const toggleFriend = (id) => {
+    setSelectedFriends((prev) => {
+      const copy = new Set(prev);
+      if (copy.has(id)) copy.delete(id);
+      else copy.add(id);
+      return copy;
+    });
+  };
+
+  const toggleGroup = (id) => {
+    setSelectedGroups((prev) => {
       const copy = new Set(prev);
       if (copy.has(id)) copy.delete(id);
       else copy.add(id);
@@ -31,8 +45,8 @@ export default function ForwardModal({ open, onClose, message }) {
   };
 
   const handleForward = async () => {
-    if (selected.size === 0) {
-      toast.error("Select at least one friend to forward to");
+    if (selectedFriends.size === 0 && selectedGroups.size === 0) {
+      toast.error("Select at least one friend or group to forward to");
       return;
     }
 
@@ -40,13 +54,20 @@ export default function ForwardModal({ open, onClose, message }) {
     if (message?.text) payload.text = message.text;
     if (message?.image) payload.image = message.image;
 
-    const ids = Array.from(selected);
+    const friendIds = Array.from(selectedFriends);
+    const groupIds = Array.from(selectedGroups);
+
     try {
-      await Promise.all(
-        ids.map((friendId) =>
-          axios.post(`/api/messages/send/${friendId}`, payload)
-        )
+      const friendPromises = friendIds.map((friendId) =>
+        axios.post(`/api/messages/send/${friendId}`, payload)
       );
+
+      const groupPromises = groupIds.map((groupId) =>
+        axios.post(`/api/groups/${groupId}/messages`, payload)
+      );
+
+      await Promise.all([...friendPromises, ...groupPromises]);
+
       toast.success("Message forwarded");
       onClose();
     } catch (err) {
@@ -83,28 +104,86 @@ export default function ForwardModal({ open, onClose, message }) {
           )}
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-3 border-b border-gray-700">
+          <button
+            onClick={() => setActiveTab("friends")}
+            className={`px-4 py-2 ${
+              activeTab === "friends"
+                ? "text-violet-400 border-b-2 border-violet-400"
+                : "text-gray-400"
+            }`}
+          >
+            Friends ({selectedFriends.size})
+          </button>
+          <button
+            onClick={() => setActiveTab("groups")}
+            className={`px-4 py-2 ${
+              activeTab === "groups"
+                ? "text-violet-400 border-b-2 border-violet-400"
+                : "text-gray-400"
+            }`}
+          >
+            Groups ({selectedGroups.size})
+          </button>
+        </div>
+
         <div className="max-h-56 overflow-y-auto mb-3">
-          {friends.length === 0 ? (
-            <div className="text-gray-400">No friends to forward to</div>
+          {activeTab === "friends" ? (
+            friends.length === 0 ? (
+              <div className="text-gray-400">No friends to forward to</div>
+            ) : (
+              friends.map((f) => (
+                <label
+                  key={f._id}
+                  className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedFriends.has(f._id)}
+                    onChange={() => toggleFriend(f._id)}
+                    className="w-4 h-4"
+                  />
+                  <img
+                    src={f.ProfilePic || assets.avatar_icon}
+                    alt={f.fullName || "avatar"}
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <div className="text-white text-sm">{f.fullName}</div>
+                </label>
+              ))
+            )
+          ) : groupsList.length === 0 ? (
+            <div className="text-gray-400">No groups to forward to</div>
           ) : (
-            friends.map((f) => (
+            groupsList.map((g) => (
               <label
-                key={f._id}
+                key={g._id}
                 className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 cursor-pointer"
               >
                 <input
                   type="checkbox"
-                  checked={selected.has(f._id)}
-                  onChange={() => toggle(f._id)}
+                  checked={selectedGroups.has(g._id)}
+                  onChange={() => toggleGroup(g._id)}
                   className="w-4 h-4"
                 />
-                <img
-                  src={f.ProfilePic || assets.avatar_icon}
-                  alt={f.fullName || "avatar"}
-                  className="w-8 h-8 rounded-full"
-                />
-                <div className="text-white text-sm">{f.fullName}</div>
-                <div className="text-gray-400 text-xs">{f.userId}</div>
+                {g.groupPic ? (
+                  <img
+                    src={g.groupPic}
+                    alt={g.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-sm">
+                    {g.name?.[0]?.toUpperCase() || "G"}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <div className="text-white text-sm">{g.name}</div>
+                  <div className="text-gray-400 text-xs">
+                    {g.members?.length || 0} members
+                  </div>
+                </div>
               </label>
             ))
           )}
@@ -121,7 +200,7 @@ export default function ForwardModal({ open, onClose, message }) {
             onClick={handleForward}
             className="px-3 py-1 rounded bg-violet-500 text-white"
           >
-            Forward ({selected.size})
+            Forward ({selectedFriends.size + selectedGroups.size})
           </button>
         </div>
       </div>

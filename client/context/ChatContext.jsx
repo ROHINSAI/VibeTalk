@@ -14,7 +14,7 @@ export const ChatProvider = ({ children }) => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [groupRequests, setGroupRequests] = useState([]);
 
-  const { socket, axios } = useContext(AuthContext);
+  const { socket, axios, authUser } = useContext(AuthContext);
   const messageListenerRef = useRef(null);
   const messageDeletedListenerRef = useRef(null);
   const messageEditedListenerRef = useRef(null);
@@ -79,10 +79,58 @@ export const ChatProvider = ({ children }) => {
   const getGroupMessages = async (groupId) => {
     if (!groupId) return;
     try {
+      // client-side guard: if we have the group locally and user is not a member, skip request
+      const localGroup = groups.find((g) => String(g._id) === String(groupId));
+      if (
+        localGroup &&
+        authUser &&
+        Array.isArray(localGroup.members) &&
+        !localGroup.members.some(
+          (m) => String(m._id || m) === String(authUser._id)
+        )
+      ) {
+        console.warn(
+          "Skipped getGroupMessages: user is not a member (client-side)"
+        );
+        // clear messages to avoid stale view and return
+        setMessages([]);
+        return;
+      }
+
       const res = await axios.get(`/api/groups/${groupId}/messages`);
       setMessages(res.data.messages || []);
     } catch (err) {
       console.error("getGroupMessages error:", err);
+      const status = err?.response?.status;
+      // If server responds 403, the user is not a member — clear selection, refresh groups and notify
+      if (status === 403) {
+        try {
+          setSelectedGroup(null);
+          // refresh groups to ensure local group membership is up-to-date
+          await getGroups();
+          // notify user clearly
+          const msg =
+            err.response?.data?.message || "You are not a member of this group";
+          toast.error(msg);
+        } catch (e) {
+          console.warn("Error handling 403 in getGroupMessages:", e);
+        }
+      } else {
+        // for other errors, surface a friendly message
+        toast.error(
+          err.response?.data?.message || "Failed to load group messages"
+        );
+      }
+      // log request details to help debug cross-origin/auth issues
+      try {
+        console.debug(
+          "getGroupMessages request:",
+          err?.config?.method,
+          err?.config?.url
+        );
+      } catch (e) {
+        /* ignore */
+      }
     }
   };
 

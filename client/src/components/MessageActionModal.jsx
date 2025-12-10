@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import toast from "react-hot-toast";
+import MessageInfoModal from "./MessageInfoModal";
 
 export default function MessageActionModal({
   open,
@@ -10,22 +11,31 @@ export default function MessageActionModal({
   onForward,
 }) {
   const { axios, authUser } = useContext(AuthContext);
-  const { removeMessage, addStarLocal, removeStarLocal, updateMessage } =
-    useContext(ChatContext);
+  const {
+    removeMessage,
+    addStarLocal,
+    removeStarLocal,
+    updateMessage,
+    selectedGroup,
+  } = useContext(ChatContext);
   const [starred, setStarred] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState("");
+  const [showMessageInfo, setShowMessageInfo] = useState(false);
 
   useEffect(() => {
     if (!open || !message) return;
     let mounted = true;
     (async () => {
       try {
+        // Star check works for both regular and group messages
         const res = await axios.get(`/api/messages/star/${message._id}`);
         if (!mounted) return;
         setStarred(!!res.data?.starred);
       } catch (err) {
         console.error("isStarred check failed:", err);
+        // If error, assume not starred
+        if (mounted) setStarred(false);
       }
     })();
     setEditing(false);
@@ -37,7 +47,10 @@ export default function MessageActionModal({
 
   const handleDeleteForMe = async () => {
     try {
-      await axios.delete(`/api/messages/delete/me/${message._id}`);
+      const endpoint = selectedGroup
+        ? `/api/groups/${selectedGroup._id}/messages/${message._id}/delete/me`
+        : `/api/messages/delete/me/${message._id}`;
+      await axios.delete(endpoint);
       removeMessage(message._id);
       toast.success("Deleted for you");
       onClose();
@@ -48,12 +61,18 @@ export default function MessageActionModal({
   };
 
   const handleDeleteForEveryone = async () => {
-    if (String(authUser?._id) !== String(message.senderId)) {
+    if (
+      String(authUser?._id) !== String(message.senderId) &&
+      String(authUser?._id) !== String(message.senderId?._id)
+    ) {
       toast.error("Only the sender can delete for everyone");
       return;
     }
     try {
-      await axios.delete(`/api/messages/delete/everyone/${message._id}`);
+      const endpoint = selectedGroup
+        ? `/api/groups/${selectedGroup._id}/messages/${message._id}/delete/everyone`
+        : `/api/messages/delete/everyone/${message._id}`;
+      await axios.delete(endpoint);
       removeMessage(message._id);
       toast.success("Deleted for everyone");
       onClose();
@@ -117,127 +136,154 @@ export default function MessageActionModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-gray-900 rounded-lg w-11/12 max-w-sm p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-white font-semibold">Message options</h3>
-          <button onClick={onClose} className="text-gray-300">
-            ×
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="bg-gray-900 rounded-lg w-11/12 max-w-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-white font-semibold">Message options</h3>
+            <button onClick={onClose} className="text-gray-300">
+              ×
+            </button>
+          </div>
 
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={handleForwardClick}
-            className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
-          >
-            Forward message
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={handleForwardClick}
+              className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
+            >
+              Forward message
+            </button>
 
-          <button
-            onClick={handleCopy}
-            className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
-          >
-            Copy message
-          </button>
+            <button
+              onClick={handleCopy}
+              className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
+            >
+              Copy message
+            </button>
 
-          <button
-            onClick={handleToggleStar}
-            className="w-full text-left px-3 py-2 rounded bg-amber-600 text-white"
-          >
-            {starred ? "Remove from starred" : "Add to starred"}
-          </button>
+            <button
+              onClick={handleToggleStar}
+              className="w-full text-left px-3 py-2 rounded bg-amber-600 text-white"
+            >
+              {starred ? "Remove from starred" : "Add to starred"}
+            </button>
 
-          {String(authUser?._id) === String(message.senderId) && (
-            <>
-              {!editing ? (
-                <button
-                  onClick={() => setEditing(true)}
-                  className="w-full text-left px-3 py-2 rounded bg-blue-600 text-white"
-                >
-                  Edit message
-                </button>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <textarea
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    className="w-full p-2 rounded bg-gray-800 text-white"
-                    rows={3}
-                  />
-                  <div className="flex gap-2">
+            {selectedGroup && (
+              <button
+                onClick={() => {
+                  setShowMessageInfo(true);
+                  onClose();
+                }}
+                className="w-full text-left px-3 py-2 rounded bg-indigo-600 text-white"
+              >
+                Message Info
+              </button>
+            )}
+
+            {String(authUser?._id) === String(message.senderId) &&
+              !message.image && (
+                <>
+                  {!editing ? (
                     <button
-                      onClick={async () => {
-                        const prevText = message.text;
-                        // optimistic update
-                        try {
-                          updateMessage({
-                            _id: message._id,
-                            text: editText,
-                            edited: true,
-                          });
-                        } catch (e) {
-                          console.warn("optimistic update failed:", e);
-                        }
-
-                        try {
-                          const res = await axios.put(
-                            `/api/messages/edit/${message._id}`,
-                            {
-                              text: editText,
+                      onClick={() => setEditing(true)}
+                      className="w-full text-left px-3 py-2 rounded bg-blue-600 text-white"
+                    >
+                      Edit message
+                    </button>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="w-full p-2 rounded bg-gray-800 text-white"
+                        rows={3}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={async () => {
+                            const prevText = message.text;
+                            // optimistic update
+                            try {
+                              updateMessage({
+                                _id: message._id,
+                                text: editText,
+                                edited: true,
+                              });
+                            } catch (e) {
+                              console.warn("optimistic update failed:", e);
                             }
-                          );
-                          // reconcile with server response if provided
-                          const updated = res.data.msg || res.data;
-                          if (updated && updated._id) {
-                            updateMessage(updated);
-                          }
-                          toast.success("Message edited");
-                          onClose();
-                        } catch (err) {
-                          console.error("edit failed:", err);
-                          // rollback optimistic change
-                          try {
-                            updateMessage({ _id: message._id, text: prevText });
-                          } catch (rbErr) {
-                            console.warn("rollback failed:", rbErr);
-                          }
-                          toast.error(
-                            err.response?.data?.message || "Edit failed"
-                          );
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 rounded bg-green-600 text-white"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditing(false)}
-                      className="flex-1 px-3 py-2 rounded bg-gray-700 text-white"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+
+                            try {
+                              const res = await axios.put(
+                                `/api/messages/edit/${message._id}`,
+                                {
+                                  text: editText,
+                                }
+                              );
+                              // reconcile with server response if provided
+                              const updated = res.data.msg || res.data;
+                              if (updated && updated._id) {
+                                updateMessage(updated);
+                              }
+                              toast.success("Message edited");
+                              onClose();
+                            } catch (err) {
+                              console.error("edit failed:", err);
+                              // rollback optimistic change
+                              try {
+                                updateMessage({
+                                  _id: message._id,
+                                  text: prevText,
+                                });
+                              } catch (rbErr) {
+                                console.warn("rollback failed:", rbErr);
+                              }
+                              toast.error(
+                                err.response?.data?.message || "Edit failed"
+                              );
+                            }
+                          }}
+                          className="flex-1 px-3 py-2 rounded bg-green-600 text-white"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditing(false)}
+                          className="flex-1 px-3 py-2 rounded bg-gray-700 text-white"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
 
-          <button
-            onClick={handleDeleteForMe}
-            className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
-          >
-            Delete for me
-          </button>
+            <button
+              onClick={handleDeleteForMe}
+              className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
+            >
+              Delete for me
+            </button>
 
-          <button
-            onClick={handleDeleteForEveryone}
-            className="w-full text-left px-3 py-2 rounded bg-red-600 text-white"
-          >
-            Delete for everyone
-          </button>
+            {(String(authUser?._id) === String(message.senderId) ||
+              String(authUser?._id) === String(message.senderId?._id)) && (
+              <button
+                onClick={handleDeleteForEveryone}
+                className="w-full text-left px-3 py-2 rounded bg-red-600 text-white"
+              >
+                Delete for everyone
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <MessageInfoModal
+        open={showMessageInfo}
+        onClose={() => setShowMessageInfo(false)}
+        message={message}
+      />
+    </>
   );
 }

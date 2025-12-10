@@ -229,8 +229,15 @@ export const starMessage = async (req, res) => {
     const { id } = req.params; // message id
     const me = req.userId;
 
+    // Check if it's a regular message or group message
     const msg = await Message.findById(id);
-    if (!msg) return res.status(404).json({ message: "Message not found" });
+    if (!msg) {
+      // Try checking GroupMessage
+      const GroupMessage = (await import("../models/GroupMessage.js")).default;
+      const groupMsg = await GroupMessage.findById(id);
+      if (!groupMsg)
+        return res.status(404).json({ message: "Message not found" });
+    }
 
     await User.findByIdAndUpdate(me, { $addToSet: { starredMessages: id } });
     res.status(200).json({ message: "Starred" });
@@ -256,16 +263,24 @@ export const unstarMessage = async (req, res) => {
 export const getStarredMessages = async (req, res) => {
   try {
     const me = req.userId;
-    const user = await User.findById(me).populate({
-      path: "starredMessages",
-      populate: [
-        { path: "senderId", select: "fullName ProfilePic userId" },
-        { path: "receiverId", select: "fullName ProfilePic userId" },
-      ],
-    });
+    const user = await User.findById(me);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.status(200).json({ starred: user.starredMessages || [] });
+    // Manually populate both Message and GroupMessage
+    const GroupMessage = (await import("../models/GroupMessage.js")).default;
+    const starredIds = user.starredMessages || [];
+
+    const regularMessages = await Message.find({ _id: { $in: starredIds } })
+      .populate("senderId", "fullName ProfilePic userId")
+      .populate("receiverId", "fullName ProfilePic userId");
+
+    const groupMessages = await GroupMessage.find({ _id: { $in: starredIds } })
+      .populate("senderId", "fullName ProfilePic userId")
+      .populate("groupId", "name groupPic");
+
+    const allStarred = [...regularMessages, ...groupMessages];
+
+    res.status(200).json({ starred: allStarred });
   } catch (error) {
     console.error("Error in getStarredMessages:", error);
     res.status(500).json({ message: "Server error." });

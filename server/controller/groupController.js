@@ -6,7 +6,7 @@ import { io, userSocketMap } from "../server.js";
 
 export const createGroup = async (req, res) => {
   try {
-    const { name, description, memberIds } = req.body;
+    const { name, description, memberIds, groupPic } = req.body;
     const creatorId = req.userId;
 
     if (!name || !name.trim()) {
@@ -26,6 +26,7 @@ export const createGroup = async (req, res) => {
       creator: creatorId,
       members: [creatorId], // Creator is automatically a member
       admins: [creatorId], // Creator is automatically an admin
+      groupPic: groupPic || "",
     });
 
     await group.save();
@@ -338,6 +339,161 @@ export const leaveGroup = async (req, res) => {
     res.status(200).json({ message: "Left group" });
   } catch (error) {
     console.error("Error in leaveGroup:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getMessageInfo = async (req, res) => {
+  try {
+    const { groupId, messageId } = req.params;
+    const userId = req.userId;
+
+    // Verify user is a member
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    if (!group.members.some((m) => String(m) === String(userId))) {
+      return res.status(403).json({ message: "Not a member of this group" });
+    }
+
+    const message = await GroupMessage.findById(messageId).populate(
+      "seenBy",
+      "fullName ProfilePic userId"
+    );
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    res.status(200).json({ seenBy: message.seenBy || [] });
+  } catch (error) {
+    console.error("Error in getMessageInfo:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const editGroupMessage = async (req, res) => {
+  try {
+    const { groupId, messageId } = req.params;
+    const { text } = req.body;
+    const userId = req.userId;
+
+    // Verify user is a member
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    if (!group.members.some((m) => String(m) === String(userId))) {
+      return res.status(403).json({ message: "Not a member of this group" });
+    }
+
+    const message = await GroupMessage.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // Only sender can edit
+    if (String(message.senderId) !== String(userId)) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    message.text = text;
+    message.edited = true;
+    await message.save();
+
+    const populatedMessage = await GroupMessage.findById(message._id).populate(
+      "senderId",
+      "fullName ProfilePic userId"
+    );
+
+    // Emit to all group members
+    group.members.forEach((memberId) => {
+      const memberSocketId =
+        userSocketMap.get && userSocketMap.get(String(memberId));
+      if (memberSocketId) {
+        io.to(memberSocketId).emit("messageEdited", populatedMessage);
+      }
+    });
+
+    res.status(200).json({ message: populatedMessage });
+  } catch (error) {
+    console.error("Error in editGroupMessage:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteGroupMessageForMe = async (req, res) => {
+  try {
+    const { groupId, messageId } = req.params;
+    const userId = req.userId;
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    if (!group.members.some((m) => String(m) === String(userId))) {
+      return res.status(403).json({ message: "Not a member of this group" });
+    }
+
+    const message = await GroupMessage.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    if (!message.deletedFor.includes(userId)) {
+      message.deletedFor.push(userId);
+      await message.save();
+    }
+
+    res.status(200).json({ message: "Deleted for you" });
+  } catch (error) {
+    console.error("Error in deleteGroupMessageForMe:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteGroupMessageForEveryone = async (req, res) => {
+  try {
+    const { groupId, messageId } = req.params;
+    const userId = req.userId;
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    if (!group.members.some((m) => String(m) === String(userId))) {
+      return res.status(403).json({ message: "Not a member of this group" });
+    }
+
+    const message = await GroupMessage.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // Only sender can delete for everyone
+    if (String(message.senderId) !== String(userId)) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await GroupMessage.findByIdAndDelete(messageId);
+
+    // Emit to all group members
+    group.members.forEach((memberId) => {
+      const memberSocketId =
+        userSocketMap.get && userSocketMap.get(String(memberId));
+      if (memberSocketId) {
+        io.to(memberSocketId).emit("messageDeleted", { messageId });
+      }
+    });
+
+    res.status(200).json({ message: "Deleted for everyone" });
+  } catch (error) {
+    console.error("Error in deleteGroupMessageForEveryone:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

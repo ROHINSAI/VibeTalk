@@ -5,6 +5,7 @@ import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import ForwardModal from "./ForwardModal";
 import MessageActionModal from "./MessageActionModal";
+import GroupInfoSidebar from "./GroupInfoSidebar";
 
 function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const {
@@ -38,6 +39,7 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const [isActionOpen, setIsActionOpen] = useState(false);
   const fileInputRef = useRef(null);
   const prevMessagesRef = useRef([]);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
 
   useEffect(() => {
     if (selectedUser) {
@@ -168,13 +170,32 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
         {selectedGroup ? (
           // Group Header
           <>
-            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
-              {selectedGroup.name.charAt(0).toUpperCase()}
-            </div>
+            {selectedGroup.groupPic ? (
+              <img
+                src={selectedGroup.groupPic}
+                className="w-8 h-8 rounded-full object-cover"
+                alt={selectedGroup.name}
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
+                {selectedGroup.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <p className="flex-1 text-lg text-white flex items-center gap-2">
               {selectedGroup.name}
               <span className="text-xs text-gray-400 ml-2">
                 {selectedGroup.members?.length || 0} members
+                {(() => {
+                  const onlineCount =
+                    selectedGroup.members?.filter((member) =>
+                      onlineUsers.some(
+                        (u) =>
+                          String(u.userId) ===
+                          String(member._id || member.userId)
+                      )
+                    ).length || 0;
+                  return onlineCount > 0 ? ` • ${onlineCount} online` : "";
+                })()}
               </span>
             </p>
             <img
@@ -187,11 +208,11 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
               src={assets.help_icon}
               alt="help"
               className={`max-md:hidden w-5 cursor-pointer transition-all ${
-                showRightSidebar
+                showGroupInfo
                   ? "opacity-100 scale-110"
                   : "opacity-70 hover:opacity-100"
               }`}
-              onClick={() => setShowRightSidebar(!showRightSidebar)}
+              onClick={() => setShowGroupInfo(!showGroupInfo)}
             />
           </>
         ) : (
@@ -260,9 +281,9 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
             const senderInfo = selectedGroup && msg.senderId;
             return (
               <div
-                key={msg._id || index}
-                data-msgid={msg._id}
-                id={`msg-${msg._id}`}
+                key={`${msg._id || "noid"}-${index}`}
+                data-msgid={msg._id || index}
+                id={`msg-${msg._id || index}`}
                 className={`flex items-end gap-2 mb-4 ${
                   isSentByMe ? "justify-end" : "justify-start"
                 }`}
@@ -450,6 +471,11 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
           setForwardingMessage(msg);
           setIsForwardOpen(true);
         }}
+      />
+      <GroupInfoSidebar
+        open={showGroupInfo}
+        onClose={() => setShowGroupInfo(false)}
+        group={selectedGroup}
       />
     </div>
   ) : (

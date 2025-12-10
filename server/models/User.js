@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     userId: { type: String, required: true, unique: true },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     blocked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    starredMessages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Message" }],
+    starredMessages: [{ type: mongoose.Schema.Types.ObjectId }],
     lastSeen: { type: Date },
   },
   { timestamps: true }
