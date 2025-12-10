@@ -10,11 +10,17 @@ export const ChatProvider = ({ children }) => {
   const [unseenMessages, setUnseenMessages] = useState({});
   const [starredIds, setStarredIds] = useState(new Set());
   const [scrollToMessageId, setScrollToMessageId] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [groupRequests, setGroupRequests] = useState([]);
 
   const { socket, axios } = useContext(AuthContext);
   const messageListenerRef = useRef(null);
   const messageDeletedListenerRef = useRef(null);
   const messageEditedListenerRef = useRef(null);
+  const groupMessageListenerRef = useRef(null);
+  const groupUpdatedListenerRef = useRef(null);
+  const groupRequestListenerRef = useRef(null);
 
   const getUsers = async () => {
     try {
@@ -36,6 +42,24 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  const getGroups = async () => {
+    try {
+      const res = await axios.get("/api/groups");
+      setGroups(res.data.groups || []);
+    } catch (err) {
+      console.error("getGroups error:", err);
+    }
+  };
+
+  const getGroupRequests = async () => {
+    try {
+      const res = await axios.get("/api/groups/requests");
+      setGroupRequests(res.data.requests || []);
+    } catch (err) {
+      console.error("getGroupRequests error:", err);
+    }
+  };
+
   const getMessages = async (userId) => {
     if (!userId) return;
     try {
@@ -52,6 +76,16 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  const getGroupMessages = async (groupId) => {
+    if (!groupId) return;
+    try {
+      const res = await axios.get(`/api/groups/${groupId}/messages`);
+      setMessages(res.data.messages || []);
+    } catch (err) {
+      console.error("getGroupMessages error:", err);
+    }
+  };
+
   const addStarLocal = (messageId) => {
     setStarredIds((prev) => new Set([...Array.from(prev), messageId]));
   };
@@ -65,18 +99,31 @@ export const ChatProvider = ({ children }) => {
   };
 
   const sendMessage = async ({ text, image }) => {
-    if (!selectedUser) return;
-
-    try {
-      const res = await axios.post(`/api/messages/send/${selectedUser._id}`, {
-        text,
-        image,
-      });
-
-      const newMsg = res.data.newMessage;
-      setMessages((prev) => [...prev, newMsg]);
-    } catch (err) {
-      console.error("sendMessage error:", err);
+    if (selectedGroup) {
+      try {
+        const res = await axios.post(
+          `/api/groups/${selectedGroup._id}/messages`,
+          {
+            text,
+            image,
+          }
+        );
+        const newMsg = res.data.message;
+        setMessages((prev) => [...prev, newMsg]);
+      } catch (err) {
+        console.error("sendGroupMessage error:", err);
+      }
+    } else if (selectedUser) {
+      try {
+        const res = await axios.post(`/api/messages/send/${selectedUser._id}`, {
+          text,
+          image,
+        });
+        const newMsg = res.data.newMessage;
+        setMessages((prev) => [...prev, newMsg]);
+      } catch (err) {
+        console.error("sendMessage error:", err);
+      }
     }
   };
 
@@ -143,6 +190,35 @@ export const ChatProvider = ({ children }) => {
     };
     messageEditedListenerRef.current = editHandler;
     socket.on("messageEdited", editHandler);
+
+    // Group message listener
+    const groupMsgHandler = (newMessage) => {
+      if (selectedGroup && newMessage.groupId === selectedGroup._id) {
+        setMessages((prev) => [...prev, newMessage]);
+      }
+    };
+    groupMessageListenerRef.current = groupMsgHandler;
+    socket.on("newGroupMessage", groupMsgHandler);
+
+    // Group updated listener
+    const groupUpdatedHandler = (updatedGroup) => {
+      setGroups((prev) =>
+        prev.map((g) => (g._id === updatedGroup._id ? updatedGroup : g))
+      );
+      if (selectedGroup && selectedGroup._id === updatedGroup._id) {
+        setSelectedGroup(updatedGroup);
+      }
+    };
+    groupUpdatedListenerRef.current = groupUpdatedHandler;
+    socket.on("groupUpdated", groupUpdatedHandler);
+
+    // Group request listener
+    const groupReqHandler = (newRequest) => {
+      setGroupRequests((prev) => [newRequest, ...prev]);
+    };
+    groupRequestListenerRef.current = groupReqHandler;
+    socket.on("newGroupRequest", groupReqHandler);
+
     // store ref for cleanup
     messageDeletedListenerRef.current._seenHandler = seenHandler;
   };
@@ -165,11 +241,25 @@ export const ChatProvider = ({ children }) => {
       socket.off("messageEdited", messageEditedListenerRef.current);
       messageEditedListenerRef.current = null;
     }
+    if (groupMessageListenerRef.current) {
+      socket.off("newGroupMessage", groupMessageListenerRef.current);
+      groupMessageListenerRef.current = null;
+    }
+    if (groupUpdatedListenerRef.current) {
+      socket.off("groupUpdated", groupUpdatedListenerRef.current);
+      groupUpdatedListenerRef.current = null;
+    }
+    if (groupRequestListenerRef.current) {
+      socket.off("newGroupRequest", groupRequestListenerRef.current);
+      groupRequestListenerRef.current = null;
+    }
   };
 
   useEffect(() => {
     getUsers();
     getStarredIds();
+    getGroups();
+    getGroupRequests();
   }, []);
 
   useEffect(() => {
@@ -177,7 +267,7 @@ export const ChatProvider = ({ children }) => {
     return () => {
       unsubscribeFromMessages();
     };
-  }, [socket, selectedUser]);
+  }, [socket, selectedUser, selectedGroup]);
 
   const value = {
     users,
@@ -195,6 +285,13 @@ export const ChatProvider = ({ children }) => {
     getMessages,
     sendMessage,
     removeMessage,
+    groups,
+    selectedGroup,
+    setSelectedGroup,
+    groupRequests,
+    getGroups,
+    getGroupRequests,
+    getGroupMessages,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

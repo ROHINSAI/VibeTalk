@@ -19,6 +19,9 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
     removeStarLocal,
     scrollToMessageId,
     setScrollToMessageId,
+    selectedGroup,
+    setSelectedGroup,
+    getGroupMessages,
   } = useContext(ChatContext);
 
   const { authUser, onlineUsers, axios } = useContext(AuthContext);
@@ -39,8 +42,10 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   useEffect(() => {
     if (selectedUser) {
       getMessages(selectedUser._id);
+    } else if (selectedGroup) {
+      getGroupMessages(selectedGroup._id);
     }
-  }, [selectedUser, getMessages]);
+  }, [selectedUser, selectedGroup, getMessages, getGroupMessages]);
 
   useEffect(() => {
     if (!messagesRef.current) return;
@@ -157,45 +162,79 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
     }
   }, [messages, authUser?._id]);
 
-  return selectedUser ? (
+  return selectedUser || selectedGroup ? (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex items-center py-3 gap-3 mx-4 border-b border-stone-500">
-        <img
-          src={selectedUser.ProfilePic || assets.avatar_icon}
-          className="w-8 rounded-full"
-          alt={selectedUser.fullName}
-        />
-        <p className="flex-1 text-lg text-white flex items-center gap-2">
-          {selectedUser.fullName}
-          <span
-            className={`w-2 h-2 rounded-full ${
-              isOnline ? "bg-green-600" : "bg-gray-500"
-            }`}
-          />
-          <span className="text-xs text-gray-400 ml-2">
-            {isOnline
-              ? "Online"
-              : selectedUser?.lastSeen
-              ? `Last seen ${formatLastSeen(selectedUser.lastSeen)}`
-              : "Offline"}
-          </span>
-        </p>
-        <img
-          src={assets.arrow_icon}
-          alt="Arrow Icon"
-          className="md:hidden w-7 cursor-pointer"
-          onClick={() => setSelectedUser(null)}
-        />
-        <img
-          src={assets.help_icon}
-          alt="help"
-          className={`max-md:hidden w-5 cursor-pointer transition-all ${
-            showRightSidebar
-              ? "opacity-100 scale-110"
-              : "opacity-70 hover:opacity-100"
-          }`}
-          onClick={() => setShowRightSidebar(!showRightSidebar)}
-        />
+        {selectedGroup ? (
+          // Group Header
+          <>
+            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
+              {selectedGroup.name.charAt(0).toUpperCase()}
+            </div>
+            <p className="flex-1 text-lg text-white flex items-center gap-2">
+              {selectedGroup.name}
+              <span className="text-xs text-gray-400 ml-2">
+                {selectedGroup.members?.length || 0} members
+              </span>
+            </p>
+            <img
+              src={assets.arrow_icon}
+              alt="Arrow Icon"
+              className="md:hidden w-7 cursor-pointer"
+              onClick={() => setSelectedGroup(null)}
+            />
+            <img
+              src={assets.help_icon}
+              alt="help"
+              className={`max-md:hidden w-5 cursor-pointer transition-all ${
+                showRightSidebar
+                  ? "opacity-100 scale-110"
+                  : "opacity-70 hover:opacity-100"
+              }`}
+              onClick={() => setShowRightSidebar(!showRightSidebar)}
+            />
+          </>
+        ) : (
+          // User Header
+          <>
+            <img
+              src={selectedUser.ProfilePic || assets.avatar_icon}
+              className="w-8 rounded-full"
+              alt={selectedUser.fullName}
+            />
+            <p className="flex-1 text-lg text-white flex items-center gap-2">
+              {selectedUser.fullName}
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isOnline ? "bg-green-600" : "bg-gray-500"
+                }`}
+              />
+              <span className="text-xs text-gray-400 ml-2">
+                {isOnline
+                  ? "Online"
+                  : selectedUser?.lastSeen
+                  ? `Last seen ${formatLastSeen(selectedUser.lastSeen)}`
+                  : "Offline"}
+              </span>
+            </p>
+            <img
+              src={assets.arrow_icon}
+              alt="Arrow Icon"
+              className="md:hidden w-7 cursor-pointer"
+              onClick={() => setSelectedUser(null)}
+            />
+            <img
+              src={assets.help_icon}
+              alt="help"
+              className={`max-md:hidden w-5 cursor-pointer transition-all ${
+                showRightSidebar
+                  ? "opacity-100 scale-110"
+                  : "opacity-70 hover:opacity-100"
+              }`}
+              onClick={() => setShowRightSidebar(!showRightSidebar)}
+            />
+          </>
+        )}
       </div>
 
       <div
@@ -215,7 +254,10 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
           </div>
         ) : (
           messages.map((msg, index) => {
-            const isSentByMe = msg.senderId === authUser?._id;
+            const isSentByMe = selectedGroup
+              ? String(msg.senderId?._id) === String(authUser?._id)
+              : msg.senderId === authUser?._id;
+            const senderInfo = selectedGroup && msg.senderId;
             return (
               <div
                 key={msg._id || index}
@@ -227,7 +269,11 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
               >
                 {!isSentByMe && (
                   <img
-                    src={selectedUser.ProfilePic || assets.avatar_icon}
+                    src={
+                      selectedGroup
+                        ? senderInfo?.ProfilePic || assets.avatar_icon
+                        : selectedUser.ProfilePic || assets.avatar_icon
+                    }
                     alt="avatar"
                     className="w-7 h-7 rounded-full"
                   />
@@ -243,6 +289,12 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
                     setIsActionOpen(true);
                   }}
                 >
+                  {/* Show sender name for group messages */}
+                  {selectedGroup && !isSentByMe && senderInfo && (
+                    <p className="text-xs text-violet-400 mb-1 font-medium">
+                      {senderInfo.fullName}
+                    </p>
+                  )}
                   {msg.image ? (
                     <img
                       src={msg.image}

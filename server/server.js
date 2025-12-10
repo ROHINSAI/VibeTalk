@@ -8,6 +8,7 @@ import { connectDB, disconnectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRouter.js";
 import friendRouter from "./routes/friendRouter.js";
+import groupRouter from "./routes/groupRouter.js";
 const app = express();
 const server = http.createServer(app);
 
@@ -66,6 +67,7 @@ app.get("/api/messages/test", (req, res) => {
 app.use("/api/users", userRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/friends", friendRouter);
+app.use("/api/groups", groupRouter);
 
 export const io = new Server(server, {
   cors: {

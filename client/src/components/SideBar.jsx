@@ -3,10 +3,22 @@ import assets from "../assets/assets";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { ChatContext } from "../../context/ChatContext.jsx";
 import { useNavigate } from "react-router-dom";
+import CreateGroupModal from "./CreateGroupModal";
+import GroupRequestsModal from "./GroupRequestsModal";
 
 function SideBar() {
-  const { users, selectedUser, setSelectedUser, unseenMessages } =
-    useContext(ChatContext);
+  const {
+    users,
+    selectedUser,
+    setSelectedUser,
+    unseenMessages,
+    groups,
+    selectedGroup,
+    setSelectedGroup,
+    groupRequests,
+    getGroups,
+    getGroupRequests,
+  } = useContext(ChatContext);
 
   const {
     logout,
@@ -21,9 +33,16 @@ function SideBar() {
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [showFriendRequestsModal, setShowFriendRequestsModal] = useState(false);
   const [friendUserId, setFriendUserId] = useState("");
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [showGroupRequestsModal, setShowGroupRequestsModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("friends"); // "friends" or "groups"
 
   const filteredUsers = users.filter((user) =>
     user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredGroups = groups.filter((group) =>
+    group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddFriend = async () => {
@@ -96,56 +115,158 @@ function SideBar() {
             )}
           </button>
         </div>
+
+        {/* Tab selector */}
+        <div className="mt-4 flex gap-2 bg-[#1a1625] p-1 rounded-lg">
+          <button
+            onClick={() => {
+              setActiveTab("friends");
+              setSelectedGroup(null);
+            }}
+            className={`flex-1 py-2 rounded-md text-xs font-medium transition-colors ${
+              activeTab === "friends"
+                ? "bg-violet-600 text-white"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Friends
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("groups");
+              setSelectedUser(null);
+            }}
+            className={`flex-1 py-2 rounded-md text-xs font-medium transition-colors relative ${
+              activeTab === "groups"
+                ? "bg-violet-600 text-white"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Groups
+            {groupRequests.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                {groupRequests.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col">
-        {filteredUsers.length > 0 ? (
-          filteredUsers.map((user) => {
-            const userIdStr = String(user._id);
-            const isOnline = onlineUsers?.includes(userIdStr);
-            const unseenCount = unseenMessages?.[userIdStr] || 0;
+        {activeTab === "friends" ? (
+          // Friends List
+          filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => {
+              const userIdStr = String(user._id);
+              const isOnline = onlineUsers?.includes(userIdStr);
+              const unseenCount = unseenMessages?.[userIdStr] || 0;
 
-            return (
-              <div
-                key={userIdStr}
-                onClick={() =>
-                  setSelectedUser(
-                    selectedUser && selectedUser._id === user._id ? null : user
-                  )
-                }
-                className={`flex items-center gap-2 p-3 mb-3 bg-[#282142] border border-gray-600 rounded-xl cursor-pointer relative hover:bg-[#3e3a5c] ${
-                  selectedUser?._id === user._id ? "bg-[#4e4a7c]" : ""
-                }`}
-              >
-                <img
-                  src={user.ProfilePic || assets.avatar_icon}
-                  alt={user.fullName}
-                  className="w-[35px] aspect-square rounded-full"
-                />
-                <div className="flex flex-col leading-5">
-                  <p>{user.fullName}</p>
-                  <p
-                    className={`text-xs ${
-                      isOnline ? "text-green-400" : "text-gray-400"
+              return (
+                <div
+                  key={userIdStr}
+                  onClick={() => {
+                    setSelectedUser(
+                      selectedUser && selectedUser._id === user._id
+                        ? null
+                        : user
+                    );
+                    setSelectedGroup(null);
+                  }}
+                  className={`flex items-center gap-2 p-3 mb-3 bg-[#282142] border border-gray-600 rounded-xl cursor-pointer relative hover:bg-[#3e3a5c] ${
+                    selectedUser?._id === user._id ? "bg-[#4e4a7c]" : ""
+                  }`}
+                >
+                  <img
+                    src={user.ProfilePic || assets.avatar_icon}
+                    alt={user.fullName}
+                    className="w-[35px] aspect-square rounded-full"
+                  />
+                  <div className="flex flex-col leading-5">
+                    <p>{user.fullName}</p>
+                    <p
+                      className={`text-xs ${
+                        isOnline ? "text-green-400" : "text-gray-400"
+                      }`}
+                    >
+                      {isOnline ? "Online" : "Offline"}
+                    </p>
+                  </div>
+
+                  {unseenCount > 0 && (
+                    <p className="absolute top-4 right-4 text-xs h-5 w-5 flex justify-center items-center rounded-full bg-violet-500/50">
+                      {unseenCount}
+                    </p>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center text-gray-400 mt-10">
+              <p className="text-sm">No friends yet</p>
+              <p className="text-xs mt-2">Add friends to start chatting!</p>
+            </div>
+          )
+        ) : (
+          // Groups List
+          <>
+            {filteredGroups.length > 0 ? (
+              filteredGroups.map((group) => {
+                return (
+                  <div
+                    key={group._id}
+                    onClick={() => {
+                      setSelectedGroup(
+                        selectedGroup && selectedGroup._id === group._id
+                          ? null
+                          : group
+                      );
+                      setSelectedUser(null);
+                    }}
+                    className={`flex items-center gap-2 p-3 mb-3 bg-[#282142] border border-gray-600 rounded-xl cursor-pointer relative hover:bg-[#3e3a5c] ${
+                      selectedGroup?._id === group._id ? "bg-[#4e4a7c]" : ""
                     }`}
                   >
-                    {isOnline ? "Online" : "Offline"}
-                  </p>
-                </div>
-
-                {unseenCount > 0 && (
-                  <p className="absolute top-4 right-4 text-xs h-5 w-5 flex justify-center items-center rounded-full bg-violet-500/50">
-                    {unseenCount}
-                  </p>
-                )}
+                    <div className="w-[35px] h-[35px] rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
+                      {group.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col leading-5 flex-1">
+                      <p>{group.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {group.members?.length || 0} members
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center text-gray-400 mt-10">
+                <p className="text-sm">No groups yet</p>
+                <p className="text-xs mt-2">Create a group to get started!</p>
               </div>
-            );
-          })
-        ) : (
-          <div className="text-center text-gray-400 mt-10">
-            <p className="text-sm">No friends yet</p>
-            <p className="text-xs mt-2">Add friends to start chatting!</p>
-          </div>
+            )}
+
+            {/* Create Group Button - Bottom Left */}
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setShowCreateGroupModal(true)}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-3 rounded-full transition-colors flex items-center justify-center gap-2"
+              >
+                <span className="text-lg">+</span>
+                Create Group
+              </button>
+              {groupRequests.length > 0 && (
+                <button
+                  onClick={() => setShowGroupRequestsModal(true)}
+                  className="relative bg-amber-600 hover:bg-amber-700 text-white text-xs py-2 px-3 rounded-full transition-colors"
+                >
+                  Invitations
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                    {groupRequests.length}
+                  </span>
+                </button>
+              )}
+            </div>
+          </>
         )}
       </div>
 
@@ -245,6 +366,26 @@ function SideBar() {
           </div>
         </div>
       )}
+
+      {/* Create Group Modal */}
+      <CreateGroupModal
+        open={showCreateGroupModal}
+        onClose={() => {
+          setShowCreateGroupModal(false);
+          getGroups();
+        }}
+      />
+
+      {/* Group Requests Modal */}
+      <GroupRequestsModal
+        open={showGroupRequestsModal}
+        onClose={() => setShowGroupRequestsModal(false)}
+        requests={groupRequests}
+        onUpdate={() => {
+          getGroupRequests();
+          getGroups();
+        }}
+      />
     </div>
   );
 }
