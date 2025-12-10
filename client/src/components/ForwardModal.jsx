@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
+import assets from "../assets/assets";
 import toast from "react-hot-toast";
 
 export default function ForwardModal({ open, onClose, message }) {
@@ -98,8 +99,8 @@ export default function ForwardModal({ open, onClose, message }) {
                   className="w-4 h-4"
                 />
                 <img
-                  src={f.ProfilePic}
-                  alt={f.fullName}
+                  src={f.ProfilePic || assets.avatar_icon}
+                  alt={f.fullName || "avatar"}
                   className="w-8 h-8 rounded-full"
                 />
                 <div className="text-white text-sm">{f.fullName}</div>
