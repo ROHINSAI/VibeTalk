@@ -7,9 +7,18 @@ export const getUsersForSidebar = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const filteredUsers = await User.find({ _id: { $ne: userId } }).select(
+    // Get current user with populated friends
+    const currentUser = await User.findById(userId).populate(
+      "friends",
       "-password"
     );
+
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Return only friends
+    const filteredUsers = currentUser.friends;
 
     const unseenMessages = {};
     const promises = filteredUsers.map(async (user) => {
@@ -92,7 +101,7 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    const receiverSocketId = userSocketMap[receiverId];
+    const receiverSocketId = userSocketMap.get && userSocketMap.get(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
     }

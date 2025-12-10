@@ -2,6 +2,23 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { generateToken } from "../lib/utils.js";
 import cloudinary from "../lib/cloudinary.js";
+
+// Generate unique 6-digit userId
+const generateUserId = async () => {
+  let userId;
+  let isUnique = false;
+
+  while (!isUnique) {
+    userId = Math.floor(100000 + Math.random() * 900000).toString();
+    const existingUser = await User.findOne({ userId });
+    if (!existingUser) {
+      isUnique = true;
+    }
+  }
+
+  return userId;
+};
+
 export const SignUp = async (req, res) => {
   try {
     const { email, fullName, password, bio } = req.body;
@@ -16,11 +33,14 @@ export const SignUp = async (req, res) => {
     }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    const userId = await generateUserId();
+
     const newUser = new User({
       email,
       fullName,
       password: hashedPassword,
       bio,
+      userId,
     });
     const token = generateToken(newUser._id);
     res.cookie("token", token, {

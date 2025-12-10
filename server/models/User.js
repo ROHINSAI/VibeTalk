@@ -7,6 +7,9 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, minlength: 6 },
     ProfilePic: { type: String, default: "" },
     bio: { type: String, default: "" },
+    userId: { type: String, required: true, unique: true },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    blocked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

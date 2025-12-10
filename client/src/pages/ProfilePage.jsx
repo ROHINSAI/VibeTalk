@@ -1,10 +1,26 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import assets from "../assets/assets";
 import { AuthContext } from "../../context/AuthContext.jsx";
 
 function ProfilePage() {
   const { authUser, updateProfile } = useContext(AuthContext);
+  const { axios, blockUser, unblockUser } = useContext(AuthContext);
+
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchBlocked = async () => {
+      try {
+        const res = await axios.get("/api/friends/blocked");
+        setBlockedUsers(res.data.blocked || []);
+      } catch (err) {
+        // ignore
+      }
+    };
+    if (authUser) fetchBlocked();
+  }, [authUser]);
 
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(authUser?.ProfilePic || null);
@@ -54,6 +70,16 @@ function ProfilePage() {
         >
           <h3 className="text-lg">Profile details</h3>
 
+          <div className="bg-[#282142] border border-gray-600 rounded-lg p-3 mb-2">
+            <p className="text-xs text-gray-400 mb-1">Your User ID</p>
+            <p className="text-2xl font-bold tracking-widest text-violet-400">
+              {authUser?.userId || "N/A"}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Share this ID with friends to connect
+            </p>
+          </div>
+
           <label
             htmlFor="avatar"
             className="flex items-center gap-3 cursor-pointer"
@@ -97,6 +123,68 @@ function ProfilePage() {
             Save
           </button>
         </form>
+
+        <div className="mx-10">
+          <button
+            onClick={() => setShowBlockedModal(true)}
+            className="bg-gray-700 text-white px-4 py-2 rounded-md"
+          >
+            Blocked Users
+          </button>
+        </div>
+
+        {showBlockedModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#282142] border border-gray-600 rounded-xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Blocked Users</h3>
+                <button
+                  onClick={() => setShowBlockedModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              {blockedUsers.length > 0 ? (
+                <div className="space-y-3">
+                  {blockedUsers.map((u) => (
+                    <div
+                      key={u._id}
+                      className="flex items-center gap-3 bg-[#1a1625] border border-gray-600 rounded-lg p-3"
+                    >
+                      <img
+                        src={u.ProfilePic || assets.avatar_icon}
+                        alt={u.fullName}
+                        className="w-12 h-12 rounded-full"
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold">{u.fullName}</p>
+                        <p className="text-xs text-gray-400">ID: {u.userId}</p>
+                      </div>
+                      <div>
+                        <button
+                          onClick={() => {
+                            unblockUser(u._id);
+                            setBlockedUsers(
+                              blockedUsers.filter((b) => b._id !== u._id)
+                            );
+                          }}
+                          className="bg-green-600 text-white px-3 py-1 rounded text-sm"
+                        >
+                          Unblock
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-400 py-8">
+                  No blocked users
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         <img
           src={previewUrl || assets.logo_icon}

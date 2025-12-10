@@ -8,13 +8,31 @@ function SideBar() {
   const { users, selectedUser, setSelectedUser, unseenMessages } =
     useContext(ChatContext);
 
-  const { logout, onlineUsers } = useContext(AuthContext);
+  const {
+    logout,
+    onlineUsers,
+    friendRequests,
+    sendFriendRequest,
+    acceptFriendRequest,
+    declineFriendRequest,
+  } = useContext(AuthContext);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+  const [showFriendRequestsModal, setShowFriendRequestsModal] = useState(false);
+  const [friendUserId, setFriendUserId] = useState("");
 
   const filteredUsers = users.filter((user) =>
     user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleAddFriend = async () => {
+    if (friendUserId.trim().length === 6) {
+      await sendFriendRequest(friendUserId.trim());
+      setFriendUserId("");
+      setShowAddFriendModal(false);
+    }
+  };
 
   return (
     <div
@@ -58,51 +76,175 @@ function SideBar() {
             />
           </div>
         </div>
+
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={() => setShowAddFriendModal(true)}
+            className="flex-1 bg-violet-600 hover:bg-violet-700 text-white text-xs py-2 px-3 rounded-full transition-colors"
+          >
+            Add Friend
+          </button>
+          <button
+            onClick={() => setShowFriendRequestsModal(true)}
+            className="relative flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 px-3 rounded-full transition-colors"
+          >
+            Requests
+            {friendRequests.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                {friendRequests.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col">
-        {filteredUsers.map((user) => {
-          const userIdStr = String(user._id);
-          const isOnline = onlineUsers?.includes(userIdStr);
-          const unseenCount = unseenMessages?.[userIdStr] || 0;
+        {filteredUsers.length > 0 ? (
+          filteredUsers.map((user) => {
+            const userIdStr = String(user._id);
+            const isOnline = onlineUsers?.includes(userIdStr);
+            const unseenCount = unseenMessages?.[userIdStr] || 0;
 
-          return (
-            <div
-              key={userIdStr}
-              onClick={() =>
-                setSelectedUser(
-                  selectedUser && selectedUser._id === user._id ? null : user
-                )
-              }
-              className={`flex items-center gap-2 p-3 mb-3 bg-[#282142] border border-gray-600 rounded-xl cursor-pointer relative hover:bg-[#3e3a5c] ${
-                selectedUser?._id === user._id ? "bg-[#4e4a7c]" : ""
-              }`}
-            >
-              <img
-                src={user.ProfilePic || assets.avatar_icon}
-                alt={user.fullName}
-                className="w-[35px] aspect-square rounded-full"
-              />
-              <div className="flex flex-col leading-5">
-                <p>{user.fullName}</p>
-                <p
-                  className={`text-xs ${
-                    isOnline ? "text-green-400" : "text-gray-400"
-                  }`}
-                >
-                  {isOnline ? "Online" : "Offline"}
-                </p>
+            return (
+              <div
+                key={userIdStr}
+                onClick={() =>
+                  setSelectedUser(
+                    selectedUser && selectedUser._id === user._id ? null : user
+                  )
+                }
+                className={`flex items-center gap-2 p-3 mb-3 bg-[#282142] border border-gray-600 rounded-xl cursor-pointer relative hover:bg-[#3e3a5c] ${
+                  selectedUser?._id === user._id ? "bg-[#4e4a7c]" : ""
+                }`}
+              >
+                <img
+                  src={user.ProfilePic || assets.avatar_icon}
+                  alt={user.fullName}
+                  className="w-[35px] aspect-square rounded-full"
+                />
+                <div className="flex flex-col leading-5">
+                  <p>{user.fullName}</p>
+                  <p
+                    className={`text-xs ${
+                      isOnline ? "text-green-400" : "text-gray-400"
+                    }`}
+                  >
+                    {isOnline ? "Online" : "Offline"}
+                  </p>
+                </div>
+
+                {unseenCount > 0 && (
+                  <p className="absolute top-4 right-4 text-xs h-5 w-5 flex justify-center items-center rounded-full bg-violet-500/50">
+                    {unseenCount}
+                  </p>
+                )}
               </div>
-
-              {unseenCount > 0 && (
-                <p className="absolute top-4 right-4 text-xs h-5 w-5 flex justify-center items-center rounded-full bg-violet-500/50">
-                  {unseenCount}
-                </p>
-              )}
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <div className="text-center text-gray-400 mt-10">
+            <p className="text-sm">No friends yet</p>
+            <p className="text-xs mt-2">Add friends to start chatting!</p>
+          </div>
+        )}
       </div>
+
+      {/* Add Friend Modal */}
+      {showAddFriendModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#282142] border border-gray-600 rounded-xl p-6 w-80">
+            <h3 className="text-lg font-semibold mb-4">Add Friend</h3>
+            <p className="text-sm text-gray-400 mb-4">
+              Enter the 6-digit User ID
+            </p>
+            <input
+              type="text"
+              value={friendUserId}
+              onChange={(e) =>
+                setFriendUserId(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+              placeholder="123456"
+              maxLength={6}
+              className="w-full bg-[#1a1625] border border-gray-600 rounded-lg px-4 py-2 text-white text-center text-lg tracking-widest outline-none focus:border-violet-500"
+            />
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => {
+                  setShowAddFriendModal(false);
+                  setFriendUserId("");
+                }}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddFriend}
+                disabled={friendUserId.length !== 6}
+                className="flex-1 bg-violet-600 hover:bg-violet-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white py-2 rounded-lg transition-colors"
+              >
+                Send Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Friend Requests Modal */}
+      {showFriendRequestsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#282142] border border-gray-600 rounded-xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Friend Requests</h3>
+              <button
+                onClick={() => setShowFriendRequestsModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            {friendRequests.length > 0 ? (
+              <div className="space-y-3">
+                {friendRequests.map((request) => (
+                  <div
+                    key={request._id}
+                    className="flex items-center gap-3 bg-[#1a1625] border border-gray-600 rounded-lg p-3"
+                  >
+                    <img
+                      src={request.sender.ProfilePic || assets.avatar_icon}
+                      alt={request.sender.fullName}
+                      className="w-12 h-12 rounded-full"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold">{request.sender.fullName}</p>
+                      <p className="text-xs text-gray-400">
+                        ID: {request.sender.userId}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => acceptFriendRequest(request._id)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => declineFriendRequest(request._id)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-400 py-8">
+                No friend requests
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

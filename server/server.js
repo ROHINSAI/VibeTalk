@@ -7,6 +7,7 @@ import "dotenv/config";
 import { connectDB, disconnectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRouter.js";
+import friendRouter from "./routes/friendRouter.js";
 const app = express();
 const server = http.createServer(app);
 
@@ -62,8 +63,9 @@ app.get("/api/messages/test", (req, res) => {
   res.json({ message: "Messages endpoint is working!", timestamp: Date.now() });
 });
 
-app.use("/users", userRouter);
-app.use("/messages", messageRouter);
+app.use("/api/users", userRouter);
+app.use("/api/messages", messageRouter);
+app.use("/api/friends", friendRouter);
 
 export const io = new Server(server, {
   cors: {
@@ -73,26 +75,30 @@ export const io = new Server(server, {
   },
 });
 
-export const userSocketMap = {};
+export const userSocketMap = new Map();
 
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
   console.log("User Connected:", userId, "Socket ID:", socket.id);
 
   if (userId && userId !== "undefined") {
-    userSocketMap[userId] = socket.id;
-    const onlineUserIds = Object.keys(userSocketMap);
+    userSocketMap.set(userId, socket.id);
+    const onlineUserIds = [...userSocketMap.keys()];
     io.emit("getOnlineUsers", onlineUserIds);
   }
 
   socket.on("disconnect", () => {
-    delete userSocketMap[userId];
-    const onlineUserIds = Object.keys(userSocketMap);
+    userSocketMap.delete(userId);
+    const onlineUserIds = [...userSocketMap.keys()];
     io.emit("getOnlineUsers", onlineUserIds);
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
+
+// Make io and userSocketMap available to controllers
+app.set("io", io);
+app.set("userSocketMap", userSocketMap);
 
 let dbConnected = false;
 const initDB = async () => {
