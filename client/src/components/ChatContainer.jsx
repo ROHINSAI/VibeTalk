@@ -14,6 +14,11 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
     getMessages,
     sendMessage,
     removeMessage,
+    starredIds,
+    addStarLocal,
+    removeStarLocal,
+    scrollToMessageId,
+    setScrollToMessageId,
   } = useContext(ChatContext);
 
   const { authUser, onlineUsers, axios } = useContext(AuthContext);
@@ -41,13 +46,22 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
     const el = messagesRef.current;
     const distanceFromBottom =
       el.scrollHeight - (el.scrollTop + el.clientHeight);
-
     // if user is at/near bottom, scroll; otherwise leave their position
     if (isAtBottom || distanceFromBottom < 150) {
       scrollEnd.current?.scrollIntoView({ behavior: "smooth" });
       setIsAtBottom(true);
     }
-  }, [messages, isAtBottom]);
+
+    // If there's a request to scroll to a specific message, attempt it
+    if (scrollToMessageId) {
+      const targetEl = document.getElementById(`msg-${scrollToMessageId}`);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        // clear the target after scrolling
+        setScrollToMessageId(null);
+      }
+    }
+  }, [messages, isAtBottom, scrollToMessageId, setScrollToMessageId]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -145,6 +159,8 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
             return (
               <div
                 key={msg._id || index}
+                data-msgid={msg._id}
+                id={`msg-${msg._id}`}
                 className={`flex items-end gap-2 mb-4 ${
                   isSentByMe ? "justify-end" : "justify-start"
                 }`}
@@ -187,6 +203,25 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
                   <p className="text-gray-500 text-xs mt-1">
                     {formatMessageTime(msg.createdAt)}
                   </p>
+
+                  {/* show star icon only when message is starred */}
+                  {starredIds.has(msg._id) && (
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await axios.delete(`/api/messages/star/${msg._id}`);
+                          removeStarLocal(msg._id);
+                        } catch (err) {
+                          console.error("unstar error:", err);
+                        }
+                      }}
+                      className="absolute -top-2 right-0 text-yellow-400"
+                      title="Starred"
+                    >
+                      ★
+                    </button>
+                  )}
 
                   {/* right-click opens action modal */}
                 </div>

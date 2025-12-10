@@ -7,13 +7,23 @@ import {
   sendMessage,
   deleteForMe,
   deleteForEveryone,
+  starMessage,
+  unstarMessage,
+  getStarredMessages,
+  isMessageStarred,
 } from "../controller/messageController.js";
 const messageRouter = express.Router();
 
 messageRouter.get("/users", protectRoute, getUsersForSidebar);
-messageRouter.get("/:userId", protectRoute, getMessages);
+// Star routes (static) must come before the dynamic userId route to avoid collisions
+messageRouter.get("/starred", protectRoute, getStarredMessages);
+messageRouter.get("/star/:id", protectRoute, isMessageStarred);
+messageRouter.post("/star/:id", protectRoute, starMessage);
+messageRouter.delete("/star/:id", protectRoute, unstarMessage);
 messageRouter.put("/seen/:id", protectRoute, markMessagesAsSeen);
 messageRouter.post("/send/:userId", protectRoute, sendMessage);
 messageRouter.delete("/delete/me/:id", protectRoute, deleteForMe);
 messageRouter.delete("/delete/everyone/:id", protectRoute, deleteForEveryone);
+// Dynamic route for fetching messages with a specific user (keep last)
+messageRouter.get("/:userId", protectRoute, getMessages);
 export default messageRouter;

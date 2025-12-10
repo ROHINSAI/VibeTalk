@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import assets from "../assets/assets";
 import { AuthContext } from "../../context/AuthContext.jsx";
+import { ChatContext } from "../../context/ChatContext";
 
 function ProfilePage() {
   const { authUser, updateProfile } = useContext(AuthContext);
@@ -9,6 +10,9 @@ function ProfilePage() {
 
   const [showBlockedModal, setShowBlockedModal] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState([]);
+  const [showStarredModal, setShowStarredModal] = useState(false);
+  const [starredMessages, setStarredMessages] = useState([]);
+  const { setSelectedUser, setScrollToMessageId } = useContext(ChatContext);
 
   useEffect(() => {
     const fetchBlocked = async () => {
@@ -20,6 +24,7 @@ function ProfilePage() {
       }
     };
     if (authUser) fetchBlocked();
+    // fetch starred messages lazily when opening modal (handled by UI)
   }, [authUser]);
 
   const [imageFile, setImageFile] = useState(null);
@@ -131,6 +136,20 @@ function ProfilePage() {
           >
             Blocked Users
           </button>
+          <button
+            onClick={async () => {
+              try {
+                const res = await axios.get("/api/messages/starred");
+                setStarredMessages(res.data.starred || []);
+                setShowStarredModal(true);
+              } catch (err) {
+                console.error("fetch starred failed:", err);
+              }
+            }}
+            className="bg-amber-600 text-white px-4 py-2 rounded-md ml-3"
+          >
+            Starred Messages
+          </button>
         </div>
 
         {showBlockedModal && (
@@ -180,6 +199,80 @@ function ProfilePage() {
               ) : (
                 <p className="text-center text-gray-400 py-8">
                   No blocked users
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showStarredModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#282142] border border-gray-600 rounded-xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Starred Messages</h3>
+                <button
+                  onClick={() => setShowStarredModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              {starredMessages.length > 0 ? (
+                <div className="space-y-3">
+                  {starredMessages.map((m) => {
+                    const otherUser =
+                      String(m.senderId?._id) === String(authUser?._id)
+                        ? m.receiverId
+                        : m.senderId;
+                    return (
+                      <div
+                        key={m._id}
+                        onClick={() => {
+                          setSelectedUser(otherUser);
+                          setScrollToMessageId(m._id);
+                          setShowStarredModal(false);
+                          navigate("/");
+                        }}
+                        className="flex cursor-pointer items-start gap-3 bg-[#1a1625] border border-gray-600 rounded-lg p-3"
+                      >
+                        <img
+                          src={otherUser?.ProfilePic || assets.avatar_icon}
+                          alt={otherUser?.fullName}
+                          className="w-12 h-12 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <p className="font-semibold">{otherUser?.fullName}</p>
+                          <p className="text-sm text-gray-300 mb-1">
+                            {m.text || (m.image ? "[image]" : "(empty)")}
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  await axios.delete(
+                                    `/api/messages/star/${m._id}`
+                                  );
+                                  setStarredMessages((s) =>
+                                    s.filter((x) => x._id !== m._id)
+                                  );
+                                } catch (err) {
+                                  console.error("unstar failed:", err);
+                                }
+                              }}
+                              className="bg-gray-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Unstar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-center text-gray-400 py-8">
+                  No starred messages
                 </p>
               )}
             </div>

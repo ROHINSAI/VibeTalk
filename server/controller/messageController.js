@@ -188,3 +188,64 @@ export const deleteForEveryone = async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 };
+
+export const starMessage = async (req, res) => {
+  try {
+    const { id } = req.params; // message id
+    const me = req.userId;
+
+    const msg = await Message.findById(id);
+    if (!msg) return res.status(404).json({ message: "Message not found" });
+
+    await User.findByIdAndUpdate(me, { $addToSet: { starredMessages: id } });
+    res.status(200).json({ message: "Starred" });
+  } catch (error) {
+    console.error("Error in starMessage:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+export const unstarMessage = async (req, res) => {
+  try {
+    const { id } = req.params; // message id
+    const me = req.userId;
+
+    await User.findByIdAndUpdate(me, { $pull: { starredMessages: id } });
+    res.status(200).json({ message: "Unstarred" });
+  } catch (error) {
+    console.error("Error in unstarMessage:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+export const getStarredMessages = async (req, res) => {
+  try {
+    const me = req.userId;
+    const user = await User.findById(me).populate({
+      path: "starredMessages",
+      populate: [
+        { path: "senderId", select: "fullName ProfilePic userId" },
+        { path: "receiverId", select: "fullName ProfilePic userId" },
+      ],
+    });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({ starred: user.starredMessages || [] });
+  } catch (error) {
+    console.error("Error in getStarredMessages:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+export const isMessageStarred = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const me = req.userId;
+    const user = await User.findById(me).select("starredMessages");
+    const starred = user?.starredMessages?.map(String).includes(String(id));
+    res.status(200).json({ starred: !!starred });
+  } catch (error) {
+    console.error("Error in isMessageStarred:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};

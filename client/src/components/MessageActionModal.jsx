@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import toast from "react-hot-toast";
@@ -10,7 +10,24 @@ export default function MessageActionModal({
   onForward,
 }) {
   const { axios, authUser } = useContext(AuthContext);
-  const { removeMessage } = useContext(ChatContext);
+  const { removeMessage, addStarLocal, removeStarLocal } =
+    useContext(ChatContext);
+  const [starred, setStarred] = useState(false);
+
+  useEffect(() => {
+    if (!open || !message) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await axios.get(`/api/messages/star/${message._id}`);
+        if (!mounted) return;
+        setStarred(!!res.data?.starred);
+      } catch (err) {
+        console.error("isStarred check failed:", err);
+      }
+    })();
+    return () => (mounted = false);
+  }, [open, message]);
 
   if (!open || !message) return null;
 
@@ -49,6 +66,52 @@ export default function MessageActionModal({
     if (onForward) onForward(message);
   };
 
+  const handleCopy = async () => {
+    try {
+      const textToCopy = message.text || message.image || "";
+      if (!textToCopy) {
+        toast.error("Nothing to copy");
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        // fallback
+        const el = document.createElement("textarea");
+        el.value = textToCopy;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+      }
+      toast.success("Copied to clipboard");
+      onClose();
+    } catch (err) {
+      console.error("copy failed:", err);
+      toast.error("Copy failed");
+    }
+  };
+
+  const handleToggleStar = async () => {
+    try {
+      if (starred) {
+        await axios.delete(`/api/messages/star/${message._id}`);
+        setStarred(false);
+        removeStarLocal(message._id);
+        toast.success("Removed from starred");
+      } else {
+        await axios.post(`/api/messages/star/${message._id}`);
+        setStarred(true);
+        addStarLocal(message._id);
+        toast.success("Added to starred");
+      }
+      onClose();
+    } catch (err) {
+      console.error("star toggle error:", err);
+      toast.error(err.response?.data?.message || "Failed to update star");
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-gray-900 rounded-lg w-11/12 max-w-sm p-4">
@@ -65,6 +128,20 @@ export default function MessageActionModal({
             className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
           >
             Forward message
+          </button>
+
+          <button
+            onClick={handleCopy}
+            className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
+          >
+            Copy message
+          </button>
+
+          <button
+            onClick={handleToggleStar}
+            className="w-full text-left px-3 py-2 rounded bg-amber-600 text-white"
+          >
+            {starred ? "Remove from starred" : "Add to starred"}
           </button>
 
           <button

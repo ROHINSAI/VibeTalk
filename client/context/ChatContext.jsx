@@ -8,6 +8,8 @@ export const ChatProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [unseenMessages, setUnseenMessages] = useState({});
+  const [starredIds, setStarredIds] = useState(new Set());
+  const [scrollToMessageId, setScrollToMessageId] = useState(null);
 
   const { socket, axios } = useContext(AuthContext);
   const messageListenerRef = useRef(null);
@@ -20,6 +22,16 @@ export const ChatProvider = ({ children }) => {
       setUnseenMessages(res.data.unseenMessages || {});
     } catch (err) {
       console.error("getUsers error:", err);
+    }
+  };
+
+  const getStarredIds = async () => {
+    try {
+      const res = await axios.get("/api/messages/starred");
+      const starred = res.data.starred || [];
+      setStarredIds(new Set(starred.map((m) => m._id)));
+    } catch (err) {
+      console.error("getStarredIds error:", err);
     }
   };
 
@@ -37,6 +49,18 @@ export const ChatProvider = ({ children }) => {
     } catch (err) {
       console.error("getMessages error:", err);
     }
+  };
+
+  const addStarLocal = (messageId) => {
+    setStarredIds((prev) => new Set([...Array.from(prev), messageId]));
+  };
+
+  const removeStarLocal = (messageId) => {
+    setStarredIds((prev) => {
+      const copy = new Set(Array.from(prev));
+      copy.delete(messageId);
+      return copy;
+    });
   };
 
   const sendMessage = async ({ text, image }) => {
@@ -108,6 +132,7 @@ export const ChatProvider = ({ children }) => {
 
   useEffect(() => {
     getUsers();
+    getStarredIds();
   }, []);
 
   useEffect(() => {
@@ -122,6 +147,11 @@ export const ChatProvider = ({ children }) => {
     messages,
     selectedUser,
     setSelectedUser,
+    starredIds,
+    addStarLocal,
+    removeStarLocal,
+    scrollToMessageId,
+    setScrollToMessageId,
     unseenMessages,
     getUsers,
     getMessages,
