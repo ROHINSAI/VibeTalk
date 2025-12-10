@@ -65,10 +65,45 @@ export const getMessages = async (req, res) => {
       ],
     }).sort({ createdAt: 1 });
 
-    await Message.updateMany(
-      { senderId: otherUserId, receiverId: userId, seen: false },
-      { $set: { seen: true } }
-    );
+    // Find messages that will be marked seen so we can notify senders
+    const messagesToMark = await Message.find({
+      senderId: otherUserId,
+      receiverId: userId,
+      seen: false,
+    }).select("_id senderId");
+
+    const messageIdsToMark = messagesToMark.map((m) => m._id.toString());
+
+    if (messageIdsToMark.length > 0) {
+      await Message.updateMany(
+        { senderId: otherUserId, receiverId: userId, seen: false },
+        { $set: { seen: true } }
+      );
+
+      // Emit seen notification to the sender's socket
+      try {
+        const senderSocketId =
+          userSocketMap.get && userSocketMap.get(otherUserId);
+        if (senderSocketId) {
+          io.to(senderSocketId).emit("messagesSeen", {
+            by: userId,
+            messageIds: messageIdsToMark,
+          });
+        }
+      } catch (emitErr) {
+        console.warn(
+          "Failed to emit messagesSeen:",
+          emitErr.message || emitErr
+        );
+      }
+    }
+
+    // update current user's lastSeen
+    try {
+      await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+    } catch (e) {
+      console.warn("Failed to update lastSeen on getMessages:", e.message || e);
+    }
 
     res.status(200).json({ messages });
   } catch (error) {

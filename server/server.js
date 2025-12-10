@@ -91,6 +91,19 @@ io.on("connection", (socket) => {
     userSocketMap.delete(userId);
     const onlineUserIds = [...userSocketMap.keys()];
     io.emit("getOnlineUsers", onlineUserIds);
+
+    // update user's lastSeen timestamp
+    try {
+      if (userId) {
+        import("./models/User.js").then(({ default: User }) => {
+          User.findByIdAndUpdate(userId, { lastSeen: new Date() }).catch((e) =>
+            console.warn("failed to update lastSeen:", e.message || e)
+          );
+        });
+      }
+    } catch (err) {
+      console.warn("Error scheduling lastSeen update:", err.message || err);
+    }
   });
 });
 

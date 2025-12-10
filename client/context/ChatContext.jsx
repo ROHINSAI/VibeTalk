@@ -92,7 +92,7 @@ export const ChatProvider = ({ children }) => {
         setMessages((prev) => [...prev, newMessage]);
 
         axios
-          .put(`/messages/seen/${newMessage._id}`)
+          .put(`/api/messages/seen/${newMessage._id}`)
           .catch((err) => console.error("mark seen error:", err));
 
         setUnseenMessages((prev) => {
@@ -118,6 +118,16 @@ export const ChatProvider = ({ children }) => {
     };
     messageDeletedListenerRef.current = delHandler;
     socket.on("messageDeleted", delHandler);
+    const seenHandler = (data) => {
+      const { messageIds } = data || {};
+      if (!messageIds || !messageIds.length) return;
+      setMessages((prev) =>
+        prev.map((m) => (messageIds.includes(m._id) ? { ...m, seen: true } : m))
+      );
+    };
+    socket.on("messagesSeen", seenHandler);
+    // store ref for cleanup
+    messageDeletedListenerRef.current._seenHandler = seenHandler;
   };
 
   const unsubscribeFromMessages = () => {
@@ -126,6 +136,12 @@ export const ChatProvider = ({ children }) => {
     messageListenerRef.current = null;
     if (messageDeletedListenerRef.current) {
       socket.off("messageDeleted", messageDeletedListenerRef.current);
+      if (messageDeletedListenerRef.current._seenHandler) {
+        socket.off(
+          "messagesSeen",
+          messageDeletedListenerRef.current._seenHandler
+        );
+      }
       messageDeletedListenerRef.current = null;
     }
   };

@@ -28,11 +28,13 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const scrollEnd = useRef(null);
   const messagesRef = useRef(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [recentlySeen, setRecentlySeen] = useState(new Set());
   const [forwardingMessage, setForwardingMessage] = useState(null);
   const [isForwardOpen, setIsForwardOpen] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [isActionOpen, setIsActionOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const prevMessagesRef = useRef([]);
 
   useEffect(() => {
     if (selectedUser) {
@@ -104,6 +106,57 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const isOnline =
     selectedUser && onlineUsers?.includes(String(selectedUser._id));
 
+  const formatLastSeen = (iso) => {
+    if (!iso) return "";
+    const t = new Date(iso);
+    const diff = Date.now() - t.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return t.toLocaleString();
+  };
+
+  // The last message sent by me that was seen by the recipient.
+  const lastSeenSentMessage = messages
+    .slice()
+    .reverse()
+    .find((m) => m.senderId === authUser?._id && m.seen);
+
+  // Detect messages that newly became seen so we can animate the Seen label.
+  useEffect(() => {
+    try {
+      const prev = prevMessagesRef.current || [];
+      const prevSeen = new Set(
+        prev
+          .filter((m) => m && m.senderId === authUser?._id && m.seen)
+          .map((m) => m._id)
+      );
+      const currSeen = new Set(
+        messages
+          .filter((m) => m && m.senderId === authUser?._id && m.seen)
+          .map((m) => m._id)
+      );
+
+      const newlySeen = Array.from(currSeen).filter((id) => !prevSeen.has(id));
+      if (newlySeen.length > 0) {
+        setRecentlySeen((prev) => new Set([...Array.from(prev), ...newlySeen]));
+        // clear after animation duration
+        setTimeout(() => {
+          setRecentlySeen((prev) => {
+            const copy = new Set(Array.from(prev));
+            newlySeen.forEach((id) => copy.delete(id));
+            return copy;
+          });
+        }, 900);
+      }
+      prevMessagesRef.current = messages;
+    } catch (e) {
+      console.warn("seen animation detection failed:", e);
+    }
+  }, [messages, authUser?._id]);
+
   return selectedUser ? (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex items-center py-3 gap-3 mx-4 border-b border-stone-500">
@@ -119,6 +172,13 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
               isOnline ? "bg-green-600" : "bg-gray-500"
             }`}
           />
+          <span className="text-xs text-gray-400 ml-2">
+            {isOnline
+              ? "Online"
+              : selectedUser?.lastSeen
+              ? `Last seen ${formatLastSeen(selectedUser.lastSeen)}`
+              : "Offline"}
+          </span>
         </p>
         <img
           src={assets.arrow_icon}
@@ -203,6 +263,19 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
                   <p className="text-gray-500 text-xs mt-1">
                     {formatMessageTime(msg.createdAt)}
                   </p>
+
+                  {/* show 'Seen' under the latest sent message when receiver has seen it */}
+                  {isSentByMe &&
+                    lastSeenSentMessage &&
+                    msg._id === lastSeenSentMessage._id && (
+                      <p
+                        className={`text-xs text-green-400 mt-1 ${
+                          recentlySeen.has(msg._id) ? "seen-animate" : ""
+                        }`}
+                      >
+                        Seen
+                      </p>
+                    )}
 
                   {/* show star icon only when message is starred */}
                   {starredIds.has(msg._id) && (

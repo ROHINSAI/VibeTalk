@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     blocked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     starredMessages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Message" }],
+    lastSeen: { type: Date },
   },
   { timestamps: true }
 );
