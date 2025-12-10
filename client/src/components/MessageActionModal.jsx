@@ -10,9 +10,11 @@ export default function MessageActionModal({
   onForward,
 }) {
   const { axios, authUser } = useContext(AuthContext);
-  const { removeMessage, addStarLocal, removeStarLocal } =
+  const { removeMessage, addStarLocal, removeStarLocal, updateMessage } =
     useContext(ChatContext);
   const [starred, setStarred] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     if (!open || !message) return;
@@ -26,6 +28,8 @@ export default function MessageActionModal({
         console.error("isStarred check failed:", err);
       }
     })();
+    setEditing(false);
+    setEditText(message?.text || "");
     return () => (mounted = false);
   }, [open, message]);
 
@@ -143,6 +147,81 @@ export default function MessageActionModal({
           >
             {starred ? "Remove from starred" : "Add to starred"}
           </button>
+
+          {String(authUser?._id) === String(message.senderId) && (
+            <>
+              {!editing ? (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="w-full text-left px-3 py-2 rounded bg-blue-600 text-white"
+                >
+                  Edit message
+                </button>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <textarea
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    className="w-full p-2 rounded bg-gray-800 text-white"
+                    rows={3}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        const prevText = message.text;
+                        // optimistic update
+                        try {
+                          updateMessage({
+                            _id: message._id,
+                            text: editText,
+                            edited: true,
+                          });
+                        } catch (e) {
+                          console.warn("optimistic update failed:", e);
+                        }
+
+                        try {
+                          const res = await axios.put(
+                            `/api/messages/edit/${message._id}`,
+                            {
+                              text: editText,
+                            }
+                          );
+                          // reconcile with server response if provided
+                          const updated = res.data.msg || res.data;
+                          if (updated && updated._id) {
+                            updateMessage(updated);
+                          }
+                          toast.success("Message edited");
+                          onClose();
+                        } catch (err) {
+                          console.error("edit failed:", err);
+                          // rollback optimistic change
+                          try {
+                            updateMessage({ _id: message._id, text: prevText });
+                          } catch (rbErr) {
+                            console.warn("rollback failed:", rbErr);
+                          }
+                          toast.error(
+                            err.response?.data?.message || "Edit failed"
+                          );
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded bg-green-600 text-white"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditing(false)}
+                      className="flex-1 px-3 py-2 rounded bg-gray-700 text-white"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
           <button
             onClick={handleDeleteForMe}

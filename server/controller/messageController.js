@@ -284,3 +284,44 @@ export const isMessageStarred = async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 };
+
+export const editMessage = async (req, res) => {
+  try {
+    const { id } = req.params; // message id
+    const me = req.userId;
+    const { text } = req.body;
+
+    const msg = await Message.findById(id);
+    if (!msg) return res.status(404).json({ message: "Message not found" });
+
+    // Only sender can edit
+    if (msg.senderId.toString() !== me.toString()) {
+      return res.status(403).json({ message: "Not authorized to edit" });
+    }
+
+    // update text and mark edited
+    msg.text = typeof text === "string" ? text : msg.text;
+    msg.edited = true;
+    await msg.save();
+
+    // emit socket event to both parties so UI can update
+    try {
+      const receiverSocketId =
+        userSocketMap.get && userSocketMap.get(msg.receiverId.toString());
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("messageEdited", msg);
+      }
+      const mySocketId = userSocketMap.get && userSocketMap.get(me.toString());
+      if (mySocketId) {
+        io.to(mySocketId).emit("messageEdited", msg);
+      }
+    } catch (emitErr) {
+      console.warn("Failed to emit messageEdited:", emitErr.message || emitErr);
+    }
+
+    res.status(200).json({ message: "Edited", msg });
+  } catch (error) {
+    console.error("Error in editMessage:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};

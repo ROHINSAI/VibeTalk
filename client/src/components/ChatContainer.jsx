@@ -262,6 +262,11 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
                   )}
                   <p className="text-gray-500 text-xs mt-1">
                     {formatMessageTime(msg.createdAt)}
+                    {msg.edited && (
+                      <span className="text-gray-400 italic text-[11px] ml-2">
+                        (edited)
+                      </span>
+                    )}
                   </p>
 
                   {/* show 'Seen' under the latest sent message when receiver has seen it */}

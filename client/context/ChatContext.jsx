@@ -14,6 +14,7 @@ export const ChatProvider = ({ children }) => {
   const { socket, axios } = useContext(AuthContext);
   const messageListenerRef = useRef(null);
   const messageDeletedListenerRef = useRef(null);
+  const messageEditedListenerRef = useRef(null);
 
   const getUsers = async () => {
     try {
@@ -83,6 +84,12 @@ export const ChatProvider = ({ children }) => {
     setMessages((prev) => prev.filter((m) => m._id !== messageId));
   };
 
+  const updateMessage = (updated) => {
+    setMessages((prev) =>
+      prev.map((m) => (m._id === updated._id ? { ...m, ...updated } : m))
+    );
+  };
+
   const subscribeToMessages = () => {
     if (!socket || messageListenerRef.current) return;
 
@@ -126,6 +133,16 @@ export const ChatProvider = ({ children }) => {
       );
     };
     socket.on("messagesSeen", seenHandler);
+    const editHandler = (updatedMsg) => {
+      if (!updatedMsg || !updatedMsg._id) return;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === updatedMsg._id ? { ...m, ...updatedMsg } : m
+        )
+      );
+    };
+    messageEditedListenerRef.current = editHandler;
+    socket.on("messageEdited", editHandler);
     // store ref for cleanup
     messageDeletedListenerRef.current._seenHandler = seenHandler;
   };
@@ -143,6 +160,10 @@ export const ChatProvider = ({ children }) => {
         );
       }
       messageDeletedListenerRef.current = null;
+    }
+    if (messageEditedListenerRef.current) {
+      socket.off("messageEdited", messageEditedListenerRef.current);
+      messageEditedListenerRef.current = null;
     }
   };
 
@@ -166,6 +187,7 @@ export const ChatProvider = ({ children }) => {
     starredIds,
     addStarLocal,
     removeStarLocal,
+    updateMessage,
     scrollToMessageId,
     setScrollToMessageId,
     unseenMessages,
