@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { formatMessageTime } from "../lib/utils";
 import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
+import ForwardModal from "./ForwardModal";
 
 function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const { selectedUser, setSelectedUser, messages, getMessages, sendMessage } =
@@ -15,6 +16,8 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const scrollEnd = useRef(null);
   const messagesRef = useRef(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [forwardingMessage, setForwardingMessage] = useState(null);
+  const [isForwardOpen, setIsForwardOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -148,7 +151,12 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
                 <div
                   className={`flex flex-col ${
                     isSentByMe ? "items-end" : "items-start"
-                  }`}
+                  } relative group`}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setForwardingMessage(msg);
+                    setIsForwardOpen(true);
+                  }}
                 >
                   {msg.image ? (
                     <img
@@ -170,6 +178,18 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
                   <p className="text-gray-500 text-xs mt-1">
                     {formatMessageTime(msg.createdAt)}
                   </p>
+
+                  {/* small forward arrow shown on hover - bottom center */}
+                  <button
+                    onClick={() => {
+                      setForwardingMessage(msg);
+                      setIsForwardOpen(true);
+                    }}
+                    className="absolute left-1/2 -translate-x-1/2 -bottom-6 hidden group-hover:block bg-gray-800 text-white rounded-full w-6 h-6 flex items-center justify-center shadow"
+                    title="Forward"
+                  >
+                    →
+                  </button>
                 </div>
 
                 {isSentByMe && (
@@ -253,6 +273,11 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
           />
         </button>
       </form>
+      <ForwardModal
+        open={isForwardOpen}
+        onClose={() => setIsForwardOpen(false)}
+        message={forwardingMessage}
+      />
     </div>
   ) : (
     <div className="flex flex-col items-center justify-center gap-2 text-gray-500 bg-white/10 max-md:hidden h-full">
