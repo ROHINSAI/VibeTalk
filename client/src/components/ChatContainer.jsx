@@ -4,6 +4,7 @@ import { formatMessageTime } from "../lib/utils";
 import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import ForwardModal from "./ForwardModal";
+import MessageActionModal from "./MessageActionModal";
 
 function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const {
@@ -24,6 +25,8 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [forwardingMessage, setForwardingMessage] = useState(null);
   const [isForwardOpen, setIsForwardOpen] = useState(false);
+  const [actionMessage, setActionMessage] = useState(null);
+  const [isActionOpen, setIsActionOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -157,11 +160,11 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
                 <div
                   className={`flex flex-col ${
                     isSentByMe ? "items-end" : "items-start"
-                  } relative group`}
+                  } relative`}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    setForwardingMessage(msg);
-                    setIsForwardOpen(true);
+                    setActionMessage(msg);
+                    setIsActionOpen(true);
                   }}
                 >
                   {msg.image ? (
@@ -185,62 +188,7 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
                     {formatMessageTime(msg.createdAt)}
                   </p>
 
-                  {/* small forward arrow shown on hover - bottom center */}
-                  <button
-                    onClick={() => {
-                      setForwardingMessage(msg);
-                      setIsForwardOpen(true);
-                    }}
-                    className="absolute left-1/2 -translate-x-1/2 -bottom-6 hidden group-hover:flex bg-gray-800 text-white rounded-full w-6 h-6 items-center justify-center shadow"
-                    title="Forward"
-                  >
-                    →
-                  </button>
-                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-14 hidden group-hover:flex gap-2">
-                    <button
-                      onClick={async () => {
-                        try {
-                          await axios.delete(
-                            `/api/messages/delete/me/${msg._id}`
-                          );
-                          removeMessage(msg._id);
-                          // optional toast
-                        } catch (err) {
-                          console.error("deleteForMe error:", err);
-                        }
-                      }}
-                      className="bg-gray-700 text-white rounded px-2 py-1 text-xs"
-                      title="Delete for me"
-                    >
-                      Delete (me)
-                    </button>
-
-                    <button
-                      onClick={async () => {
-                        if (authUser?._id !== msg.senderId) {
-                          // not allowed
-                          if (
-                            !window.confirm(
-                              "Only sender can delete for everyone. Request delete?"
-                            )
-                          )
-                            return;
-                        }
-                        try {
-                          await axios.delete(
-                            `/api/messages/delete/everyone/${msg._id}`
-                          );
-                          removeMessage(msg._id);
-                        } catch (err) {
-                          console.error("deleteForEveryone error:", err);
-                        }
-                      }}
-                      className="bg-red-600 text-white rounded px-2 py-1 text-xs"
-                      title="Delete for everyone"
-                    >
-                      Delete (everyone)
-                    </button>
-                  </div>
+                  {/* right-click opens action modal */}
                 </div>
 
                 {isSentByMe && (
@@ -328,6 +276,15 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
         open={isForwardOpen}
         onClose={() => setIsForwardOpen(false)}
         message={forwardingMessage}
+      />
+      <MessageActionModal
+        open={isActionOpen}
+        onClose={() => setIsActionOpen(false)}
+        message={actionMessage}
+        onForward={(msg) => {
+          setForwardingMessage(msg);
+          setIsForwardOpen(true);
+        }}
       />
     </div>
   ) : (
