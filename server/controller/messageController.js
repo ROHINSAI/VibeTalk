@@ -47,10 +47,21 @@ export const getMessages = async (req, res) => {
     const userId = req.userId;
     const otherUserId = req.params.userId;
 
+    // Exclude messages that the current user has deleted for themselves
     const messages = await Message.find({
-      $or: [
-        { senderId: userId, receiverId: otherUserId },
-        { senderId: otherUserId, receiverId: userId },
+      $and: [
+        {
+          $or: [
+            { senderId: userId, receiverId: otherUserId },
+            { senderId: otherUserId, receiverId: userId },
+          ],
+        },
+        {
+          $or: [
+            { deletedFor: { $exists: false } },
+            { deletedFor: { $nin: [userId] } },
+          ],
+        },
       ],
     }).sort({ createdAt: 1 });
 
@@ -109,6 +120,71 @@ export const sendMessage = async (req, res) => {
     res.status(201).json({ message: "Message sent successfully.", newMessage });
   } catch (error) {
     console.error("Error in sendMessage:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+export const deleteForMe = async (req, res) => {
+  try {
+    const { id } = req.params; // message id
+    const me = req.userId;
+
+    const msg = await Message.findById(id);
+    if (!msg) return res.status(404).json({ message: "Message not found" });
+
+    // If user already deleted for themselves, return success
+    if (msg.deletedFor && msg.deletedFor.map(String).includes(String(me))) {
+      return res.status(200).json({ message: "Deleted for you" });
+    }
+
+    msg.deletedFor = [...(msg.deletedFor || []), me];
+    await msg.save();
+
+    res.status(200).json({ message: "Deleted for you" });
+  } catch (error) {
+    console.error("Error in deleteForMe:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+export const deleteForEveryone = async (req, res) => {
+  try {
+    const { id } = req.params; // message id
+    const me = req.userId;
+
+    const msg = await Message.findById(id);
+    if (!msg) return res.status(404).json({ message: "Message not found" });
+
+    // Only sender can delete for everyone
+    if (msg.senderId.toString() !== me.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete for everyone" });
+    }
+
+    await Message.findByIdAndDelete(id);
+
+    // emit socket event to receiver (so they can remove message)
+    const receiverSocketId =
+      userSocketMap.get && userSocketMap.get(msg.receiverId.toString());
+    try {
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("messageDeleted", { messageId: id });
+      }
+      const mySocketId = userSocketMap.get && userSocketMap.get(me.toString());
+      if (mySocketId) {
+        io.to(mySocketId).emit("messageDeleted", { messageId: id });
+      }
+    } catch (emitErr) {
+      console.warn(
+        "Failed to emit messageDeleted:",
+        emitErr.message || emitErr
+      );
+    }
+
+    res.status(200).json({ message: "Deleted for everyone" });
+  } catch (error) {
+    console.error("Error in deleteForEveryone:", error);
     res.status(500).json({ message: "Server error." });
   }
 };

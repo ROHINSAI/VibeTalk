@@ -11,6 +11,7 @@ export const ChatProvider = ({ children }) => {
 
   const { socket, axios } = useContext(AuthContext);
   const messageListenerRef = useRef(null);
+  const messageDeletedListenerRef = useRef(null);
 
   const getUsers = async () => {
     try {
@@ -54,6 +55,10 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  const removeMessage = (messageId) => {
+    setMessages((prev) => prev.filter((m) => m._id !== messageId));
+  };
+
   const subscribeToMessages = () => {
     if (!socket || messageListenerRef.current) return;
 
@@ -83,12 +88,22 @@ export const ChatProvider = ({ children }) => {
 
     messageListenerRef.current = handler;
     socket.on("newMessage", handler);
+    const delHandler = (data) => {
+      const { messageId } = data;
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    };
+    messageDeletedListenerRef.current = delHandler;
+    socket.on("messageDeleted", delHandler);
   };
 
   const unsubscribeFromMessages = () => {
     if (!socket || !messageListenerRef.current) return;
     socket.off("newMessage", messageListenerRef.current);
     messageListenerRef.current = null;
+    if (messageDeletedListenerRef.current) {
+      socket.off("messageDeleted", messageDeletedListenerRef.current);
+      messageDeletedListenerRef.current = null;
+    }
   };
 
   useEffect(() => {
@@ -111,6 +126,7 @@ export const ChatProvider = ({ children }) => {
     getUsers,
     getMessages,
     sendMessage,
+    removeMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
