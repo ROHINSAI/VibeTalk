@@ -13,6 +13,11 @@ import {
   editGroupMessage,
   deleteGroupMessageForMe,
   deleteGroupMessageForEveryone,
+  promoteToAdmin,
+  demoteAdmin,
+  updateGroupDetails,
+  addMember,
+  removeMember,
 } from "../controller/groupController.js";
 
 const groupRouter = express.Router();
@@ -45,5 +50,10 @@ groupRouter.delete(
   deleteGroupMessageForEveryone
 );
 groupRouter.delete("/:groupId/leave", protectRoute, leaveGroup);
+groupRouter.put("/:groupId/promote/:memberId", protectRoute, promoteToAdmin);
+groupRouter.put("/:groupId/demote/:memberId", protectRoute, demoteAdmin);
+groupRouter.put("/:groupId/update", protectRoute, updateGroupDetails);
+groupRouter.post("/:groupId/add-members", protectRoute, addMember);
+groupRouter.delete("/:groupId/remove/:memberId", protectRoute, removeMember);
 
 export default groupRouter;

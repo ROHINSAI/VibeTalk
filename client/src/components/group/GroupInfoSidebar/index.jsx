@@ -6,16 +6,28 @@ import GroupHeader from "./GroupHeader";
 import MediaGrid from "./MediaGrid";
 import MemberList from "./MemberList";
 import ActionsFooter from "./ActionsFooter";
+import EditGroupModal from "../modals/EditGroupModal";
+import AddMembersModal from "../modals/AddMembersModal";
 
 export default function GroupInfoSidebar({ group }) {
   const { authUser, axios } = useContext(AuthContext);
-  const { onlineUsers, setGroups, setSelectedGroup } = useContext(ChatContext);
+  const { onlineUsers, setSelectedGroup, getGroups } = useContext(ChatContext);
   const [media, setMedia] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddMembersModal, setShowAddMembersModal] = useState(false);
 
   if (!group) return null;
 
   const members = Array.isArray(group?.members) ? group.members : [];
   const onlineUsersList = Array.isArray(onlineUsers) ? onlineUsers : [];
+
+  const isCreator =
+    String(group.creator?._id || group.creator) === String(authUser?._id);
+  const isAdmin =
+    Array.isArray(group.admins) &&
+    group.admins.some((a) => String(a._id || a) === String(authUser?._id));
+
+  const canManageGroup = isCreator || isAdmin;
 
   useEffect(() => {
     const fetchMedia = async () => {
@@ -35,7 +47,8 @@ export default function GroupInfoSidebar({ group }) {
   const handleLeaveGroup = async () => {
     try {
       await axios.delete(`/api/groups/${group._id}/leave`);
-      setGroups((prev) => prev.filter((g) => g._id !== group._id));
+      // refresh groups from server instead of mutating internal state directly
+      await getGroups();
       setSelectedGroup(null);
       toast.success("Left the group");
     } catch (err) {
@@ -44,35 +57,84 @@ export default function GroupInfoSidebar({ group }) {
     }
   };
 
+  const handleUpdate = () => {
+    getGroups();
+  };
+
   return (
     <div
-      className={`bg-[#8185B2]/10 text-white w-full relative overflow-y-scroll max-md:hidden`}
+      className={`bg-[#8185B2]/10 text-white w-full h-full flex flex-col overflow-hidden max-md:hidden`}
     >
-      <GroupHeader
-        group={group}
-        members={members}
-        onlineUsers={onlineUsersList}
-      />
+      {/* Fixed Header Section */}
+      <div className="flex-none">
+        <GroupHeader
+          group={group}
+          members={members}
+          onlineUsers={onlineUsersList}
+        />
 
-      <hr className="border-[#ffffff50] my-4" />
+        {canManageGroup && (
+          <div className="px-5 mt-4 flex gap-2">
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="flex-1 bg-violet-600 hover:bg-violet-700 text-white text-xs py-2 px-3 rounded-lg transition-colors"
+            >
+              Edit Group
+            </button>
+            <button
+              onClick={() => setShowAddMembersModal(true)}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-3 rounded-lg transition-colors"
+            >
+              Add Members
+            </button>
+          </div>
+        )}
 
-      <div className="px-5 text-xs">
-        <p>Media</p>
-        <MediaGrid media={media} />
+        <hr className="border-[#ffffff50] my-4" />
+
+        <div className="px-5 text-xs">
+          <p>Media</p>
+          <MediaGrid media={media} />
+        </div>
+
+        <hr className="border-[#ffffff50] my-4" />
       </div>
 
-      <hr className="border-[#ffffff50] my-4" />
-
-      <div className="px-5 text-xs mb-20">
+      {/* Scrollable Members List Section */}
+      <div className="flex-1 overflow-y-auto min-h-0 px-5 text-xs">
         <p className="mb-2">Members ({members.length})</p>
         <MemberList
           members={members}
           group={group}
           onlineUsers={onlineUsersList}
+          authUser={authUser}
+          axios={axios}
+          onUpdate={handleUpdate}
         />
+        {/* Add padding at bottom to prevent content from being hidden behind a potential footer if it wasn't flex */}
+        <div className="h-4"></div>
       </div>
 
-      <ActionsFooter onLeave={handleLeaveGroup} />
+      {/* Fixed Footer Section */}
+      <div className="flex-none mt-auto">
+        <ActionsFooter onLeave={handleLeaveGroup} />
+      </div>
+
+      <EditGroupModal
+        open={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        group={group}
+        axios={axios}
+        onUpdate={handleUpdate}
+      />
+
+      <AddMembersModal
+        open={showAddMembersModal}
+        onClose={() => setShowAddMembersModal(false)}
+        group={group}
+        axios={axios}
+        onUpdate={handleUpdate}
+      />
     </div>
   );
 }
