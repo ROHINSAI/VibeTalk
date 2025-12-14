@@ -56,7 +56,7 @@ function SideBar() {
   return (
     <div
       className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-auto text-white ${
-        selectedUser ? "max-md:hidden" : ""
+        !selectedUser && !selectedGroup ? "max-md:hidden" : ""
       }`}
     >
       <div className="pb-5">
@@ -95,7 +95,6 @@ function SideBar() {
             />
           </div>
         </div>
-
         <div className="mt-4 flex gap-2">
           <button
             onClick={() => setShowAddFriendModal(true)}
@@ -226,9 +225,17 @@ function SideBar() {
                       selectedGroup?._id === group._id ? "bg-[#4e4a7c]" : ""
                     }`}
                   >
-                    <div className="w-[35px] h-[35px] rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
-                      {group.name.charAt(0).toUpperCase()}
-                    </div>
+                    {group.groupPic ? (
+                      <img
+                        src={group.groupPic}
+                        alt={group.name}
+                        className="w-[35px] h-[35px] rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-[35px] h-[35px] rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
+                        {group.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div className="flex flex-col leading-5 flex-1">
                       <p>{group.name}</p>
                       <p className="text-xs text-gray-400">
@@ -245,27 +252,26 @@ function SideBar() {
               </div>
             )}
 
-            {/* Create Group Button - Bottom Left */}
-            <div className="mt-4 flex gap-2">
+            {/* Create Group Button */}
+            <button
+              onClick={() => setShowCreateGroupModal(true)}
+              className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-3 rounded-full transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="text-lg">+</span>
+              Create Group
+            </button>
+
+            {groupRequests.length > 0 && (
               <button
-                onClick={() => setShowCreateGroupModal(true)}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-3 rounded-full transition-colors flex items-center justify-center gap-2"
+                onClick={() => setShowGroupRequestsModal(true)}
+                className="relative w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white text-xs py-2 px-3 rounded-full transition-colors"
               >
-                <span className="text-lg">+</span>
-                Create Group
+                Invitations
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                  {groupRequests.length}
+                </span>
               </button>
-              {groupRequests.length > 0 && (
-                <button
-                  onClick={() => setShowGroupRequestsModal(true)}
-                  className="relative bg-amber-600 hover:bg-amber-700 text-white text-xs py-2 px-3 rounded-full transition-colors"
-                >
-                  Invitations
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
-                    {groupRequests.length}
-                  </span>
-                </button>
-              )}
-            </div>
+            )}
           </>
         )}
       </div>

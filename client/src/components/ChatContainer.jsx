@@ -5,9 +5,13 @@ import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import ForwardModal from "./ForwardModal";
 import MessageActionModal from "./MessageActionModal";
-import GroupInfoSidebar from "./GroupInfoSidebar";
 
-function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
+function ChatContainer({
+  showRightSidebar,
+  setShowRightSidebar,
+  showGroupInfo,
+  setShowGroupInfo,
+}) {
   const {
     selectedUser,
     setSelectedUser,
@@ -39,7 +43,6 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
   const [isActionOpen, setIsActionOpen] = useState(false);
   const fileInputRef = useRef(null);
   const prevMessagesRef = useRef([]);
-  const [showGroupInfo, setShowGroupInfo] = useState(false);
 
   useEffect(() => {
     if (selectedUser) {
@@ -458,11 +461,6 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
           />
         </button>
       </form>
-      <ForwardModal
-        open={isForwardOpen}
-        onClose={() => setIsForwardOpen(false)}
-        message={forwardingMessage}
-      />
       <MessageActionModal
         open={isActionOpen}
         onClose={() => setIsActionOpen(false)}
@@ -471,11 +469,6 @@ function ChatContainer({ showRightSidebar, setShowRightSidebar }) {
           setForwardingMessage(msg);
           setIsForwardOpen(true);
         }}
-      />
-      <GroupInfoSidebar
-        open={showGroupInfo}
-        onClose={() => setShowGroupInfo(false)}
-        group={selectedGroup}
       />
     </div>
   ) : (

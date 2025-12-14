@@ -3,10 +3,16 @@ import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
-// Media Section Component
-function MediaSection({ group, axios }) {
+export default function GroupInfoSidebar({ group }) {
+  const { authUser, axios } = useContext(AuthContext);
+  const { onlineUsers, setGroups, setSelectedGroup } = useContext(ChatContext);
   const [media, setMedia] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  if (!group) return null;
+
+  // defensive: ensure members and onlineUsers are arrays
+  const members = Array.isArray(group?.members) ? group.members : [];
+  const onlineUsersList = Array.isArray(onlineUsers) ? onlineUsers : [];
 
   useEffect(() => {
     const fetchMedia = async () => {
@@ -18,60 +24,10 @@ function MediaSection({ group, axios }) {
         setMedia(mediaMessages);
       } catch (err) {
         console.error("Failed to fetch media:", err);
-      } finally {
-        setLoading(false);
       }
     };
     fetchMedia();
   }, [group?._id, axios]);
-
-  if (loading) {
-    return (
-      <div className="p-4 border-b border-gray-700">
-        <h4 className="text-white font-semibold mb-2">Media</h4>
-        <p className="text-gray-400 text-sm">Loading...</p>
-      </div>
-    );
-  }
-
-  if (media.length === 0) {
-    return (
-      <div className="p-4 border-b border-gray-700">
-        <h4 className="text-white font-semibold mb-2">Media</h4>
-        <p className="text-gray-400 text-sm">No media yet</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4 border-b border-gray-700">
-      <h4 className="text-white font-semibold mb-3">Media ({media.length})</h4>
-      <div className="grid grid-cols-3 gap-2">
-        {media.map((msg) => (
-          <div key={msg._id} className="aspect-square">
-            <img
-              src={msg.image}
-              alt="Media"
-              className="w-full h-full object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => window.open(msg.image, "_blank")}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export default function GroupInfoSidebar({ open, onClose, group }) {
-  const { authUser, axios } = useContext(AuthContext);
-  const { onlineUsers, setGroups, setSelectedGroup } = useContext(ChatContext);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  if (!open || !group) return null;
-
-  // defensive: ensure members and onlineUsers are arrays
-  const members = Array.isArray(group?.members) ? group.members : [];
-  const onlineUsersList = Array.isArray(onlineUsers) ? onlineUsers : [];
 
   const handleLeaveGroup = async () => {
     try {
@@ -79,19 +35,11 @@ export default function GroupInfoSidebar({ open, onClose, group }) {
       setGroups((prev) => prev.filter((g) => g._id !== group._id));
       setSelectedGroup(null);
       toast.success("Left the group");
-      onClose();
     } catch (err) {
       console.error("Leave group error:", err);
       toast.error(err.response?.data?.message || "Failed to leave group");
     }
   };
-
-  // Filter members by search term
-  const filteredMembers = members.filter((member) =>
-    String(member.fullName || "")
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
 
   // Count online members
   const onlineMembersCount = members.filter(
@@ -103,135 +51,129 @@ export default function GroupInfoSidebar({ open, onClose, group }) {
   ).length;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-80 bg-gray-800 shadow-xl flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        <h2 className="text-white font-semibold">Group Info</h2>
-        <button onClick={onClose} className="text-gray-300 hover:text-white">
-          ×
-        </button>
-      </div>
-
-      {/* Group Profile */}
-      <div className="flex flex-col items-center p-6 border-b border-gray-700">
+    <div
+      className={`bg-[#8185B2]/10 text-white w-full relative overflow-y-scroll max-md:hidden`}
+    >
+      <div className="pt-16 flex flex-col items-center gap-2 text-xs font-light mx-auto">
         {group.groupPic ? (
           <img
             src={group.groupPic}
             alt={group.name}
-            className="w-24 h-24 rounded-full object-cover"
+            className="w-20 aspect-[1/1] rounded-full object-cover"
           />
         ) : (
-          <div className="w-24 h-24 rounded-full bg-purple-600 flex items-center justify-center">
+          <div className="w-20 aspect-[1/1] rounded-full bg-purple-600 flex items-center justify-center">
             <span className="text-white text-3xl font-bold">
               {group.name?.[0]?.toUpperCase() || "G"}
             </span>
           </div>
         )}
-        <h3 className="text-white font-semibold text-lg mt-3">{group.name}</h3>
+
+        <h1 className="px-10 text-xl font-medium mx-auto flex items-center gap-2">
+          {group.name}
+        </h1>
         {group.description && (
-          <p className="text-gray-400 text-sm text-center mt-1">
+          <p className="px-10 mx-auto text-center text-gray-300">
             {group.description}
           </p>
         )}
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-gray-400 text-sm">
-            {members.length} members
-          </span>
-          {onlineMembersCount > 0 && (
-            <>
-              <span className="text-gray-600">•</span>
-              <span className="text-green-400 text-sm">
-                {onlineMembersCount} online
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Media Section */}
-      <MediaSection group={group} axios={axios} />
-
-      {/* Members Section */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
-          <h4 className="text-white font-semibold mb-3">
-            Members ({members.length})
-          </h4>
-
-          {/* Search Bar */}
-          <input
-            type="text"
-            placeholder="Search members..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 rounded bg-gray-700 text-white placeholder-gray-400 mb-3"
-          />
-
-          {/* Members List */}
-          <div className="flex flex-col gap-2">
-            {filteredMembers.map((member) => {
-              const isOnline =
-                Array.isArray(onlineUsersList) &&
-                onlineUsersList.some(
-                  (u) =>
-                    String(u.userId) === String(member._id || member.userId)
-                );
-              const isAdmin = Array.isArray(group.admins)
-                ? group.admins.some(
-                    (a) => String(a) === String(member._id || member.userId)
-                  )
-                : false;
-              const isCreator =
-                String(group.creator) === String(member._id || member.userId);
-
-              return (
-                <div
-                  key={member._id || member.userId}
-                  className="flex items-center gap-3 p-2 rounded hover:bg-gray-700"
-                >
-                  <div className="relative">
-                    {member.ProfilePic ? (
-                      <img
-                        src={member.ProfilePic}
-                        alt={member.fullName}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                        <span className="text-white font-semibold">
-                          {member.fullName?.[0]?.toUpperCase() || "U"}
-                        </span>
-                      </div>
-                    )}
-                    {isOnline && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-white text-sm">{member.fullName}</p>
-                    {(isCreator || isAdmin) && (
-                      <p className="text-gray-400 text-xs">
-                        {isCreator ? "Creator" : "Admin"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            {filteredMembers.length === 0 && (
-              <p className="text-gray-400 text-sm text-center py-4">
-                No members found
-              </p>
-            )}
+        <div className="bg-[#282142] border border-gray-600 rounded-lg px-4 py-2 mt-2 flex gap-4">
+          <div className="text-center">
+            <p className="text-[10px] text-gray-400">Members</p>
+            <p className="text-lg font-bold tracking-wider text-violet-400">
+              {members.length}
+            </p>
+          </div>
+          <div className="text-center border-l border-gray-600 pl-4">
+            <p className="text-[10px] text-gray-400">Online</p>
+            <p className="text-lg font-bold tracking-wider text-green-400">
+              {onlineMembersCount}
+            </p>
           </div>
         </div>
       </div>
+      <hr className="border-[#ffffff50] my-4" />
 
-      {/* Leave Group Button */}
-      <div className="p-4 border-t border-gray-700">
+      {/* Media Section */}
+      <div className="px-5 text-xs">
+        <p>Media</p>
+        {media.length > 0 ? (
+          <div className="mt-2 max-h-[200px] overflow-y-scroll grid grid-cols-2 gap-4 opacity-80">
+            {media.map((msg, index) => (
+              <div
+                key={msg._id || index}
+                onClick={() => window.open(msg.image, "_blank")}
+                className="cursor-pointer rounded hover:opacity-100 transition-opacity"
+              >
+                <img
+                  src={msg.image}
+                  alt={`Media`}
+                  className="w-full h-24 object-cover rounded-md"
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-2 text-gray-400 text-center py-4">
+            No media shared yet
+          </div>
+        )}
+      </div>
+
+      <hr className="border-[#ffffff50] my-4" />
+
+      {/* Members Section */}
+      <div className="px-5 text-xs mb-20">
+        <p className="mb-2">Members ({members.length})</p>
+        <div className="flex flex-col gap-2">
+          {members.map((member) => {
+            const isOnline =
+              Array.isArray(onlineUsersList) &&
+              onlineUsersList.some(
+                (u) => String(u.userId) === String(member._id || member.userId)
+              );
+            const isAdmin = Array.isArray(group.admins)
+              ? group.admins.some(
+                  (a) => String(a) === String(member._id || member.userId)
+                )
+              : false;
+            const isCreator =
+              String(group.creator) === String(member._id || member.userId);
+
+            return (
+              <div
+                key={member._id || member.userId}
+                className="flex items-center gap-2 p-2 rounded hover:bg-white/5 transition-colors"
+              >
+                <div className="relative">
+                  <img
+                    src={member.ProfilePic || "/avatar_icon.png"} // Fallback handling provided by src or error
+                    alt={member.fullName}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  {isOnline && (
+                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-gray-800" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm truncate">{member.fullName}</p>
+                  {(isCreator || isAdmin) && (
+                    <p className="text-gray-400 text-[10px]">
+                      {isCreator ? "Group Creator" : "Admin"}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex flex-col gap-2 w-[calc(100%-40px)] bg-[#1a1625] pt-2">
         <button
           onClick={handleLeaveGroup}
-          className="w-full px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+          className="w-full bg-red-600 hover:bg-red-700 text-white
+             border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all shadow-lg"
         >
           Leave Group
         </button>
