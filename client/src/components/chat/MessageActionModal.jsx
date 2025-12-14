@@ -2,6 +2,12 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../../context/AuthContext";
 import { ChatContext } from "../../../context/ChatContext";
 import toast from "react-hot-toast";
+import ActionModal from "./ActionModal";
+import ForwardAction from "./actions/ForwardAction";
+import CopyAction from "./actions/CopyAction";
+import StarAction from "./actions/StarAction";
+import EditAction from "./actions/EditAction";
+import DeleteActions from "./actions/DeleteActions";
 
 export default function MessageActionModal({
   open,
@@ -130,131 +136,56 @@ export default function MessageActionModal({
     }
   };
 
+  const handleSaveEdit = async () => {
+    const prevText = message.text;
+    try {
+      updateMessage({ _id: message._id, text: editText, edited: true });
+    } catch (e) {
+      console.warn("optimistic update failed:", e);
+    }
+    try {
+      const res = await axios.put(`/api/messages/edit/${message._id}`, {
+        text: editText,
+      });
+      const updated = res.data.msg || res.data;
+      if (updated && updated._id) updateMessage(updated);
+      toast.success("Message edited");
+      onClose();
+    } catch (err) {
+      console.error("edit failed:", err);
+      try {
+        updateMessage({ _id: message._id, text: prevText });
+      } catch (rbErr) {
+        console.warn("rollback failed:", rbErr);
+      }
+      toast.error(err.response?.data?.message || "Edit failed");
+    }
+  };
+
   return (
-    <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="bg-gray-900 rounded-lg w-11/12 max-w-sm p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-white font-semibold">Message options</h3>
-            <button onClick={onClose} className="text-gray-300">
-              ×
-            </button>
-          </div>
+    <ActionModal open={open} onClose={onClose} title="Message options">
+      <ForwardAction onForward={handleForwardClick} message={message} />
+      <CopyAction onCopy={handleCopy} />
+      <StarAction starred={starred} onToggle={handleToggleStar} />
 
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={handleForwardClick}
-              className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
-            >
-              Forward message
-            </button>
+      {String(authUser?._id) === String(message.senderId) && !message.image && (
+        <EditAction
+          editing={editing}
+          setEditing={setEditing}
+          editText={editText}
+          setEditText={setEditText}
+          onSave={handleSaveEdit}
+        />
+      )}
 
-            <button
-              onClick={handleCopy}
-              className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
-            >
-              Copy message
-            </button>
-
-            <button
-              onClick={handleToggleStar}
-              className="w-full text-left px-3 py-2 rounded bg-amber-600 text-white"
-            >
-              {starred ? "Remove from starred" : "Add to starred"}
-            </button>
-
-            {String(authUser?._id) === String(message.senderId) &&
-              !message.image && (
-                <>
-                  {!editing ? (
-                    <button
-                      onClick={() => setEditing(true)}
-                      className="w-full text-left px-3 py-2 rounded bg-blue-600 text-white"
-                    >
-                      Edit message
-                    </button>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      <textarea
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        className="w-full p-2 rounded bg-gray-800 text-white"
-                        rows={3}
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={async () => {
-                            const prevText = message.text;
-                            try {
-                              updateMessage({
-                                _id: message._id,
-                                text: editText,
-                                edited: true,
-                              });
-                            } catch (e) {
-                              console.warn("optimistic update failed:", e);
-                            }
-                            try {
-                              const res = await axios.put(
-                                `/api/messages/edit/${message._id}`,
-                                { text: editText }
-                              );
-                              const updated = res.data.msg || res.data;
-                              if (updated && updated._id) {
-                                updateMessage(updated);
-                              }
-                              toast.success("Message edited");
-                              onClose();
-                            } catch (err) {
-                              console.error("edit failed:", err);
-                              try {
-                                updateMessage({
-                                  _id: message._id,
-                                  text: prevText,
-                                });
-                              } catch (rbErr) {
-                                console.warn("rollback failed:", rbErr);
-                              }
-                              toast.error(
-                                err.response?.data?.message || "Edit failed"
-                              );
-                            }
-                          }}
-                          className="flex-1 px-3 py-2 rounded bg-green-600 text-white"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => setEditing(false)}
-                          className="flex-1 px-3 py-2 rounded bg-gray-700 text-white"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-            <button
-              onClick={handleDeleteForMe}
-              className="w-full text-left px-3 py-2 rounded bg-gray-800 text-white"
-            >
-              Delete for me
-            </button>
-
-            {(String(authUser?._id) === String(message.senderId) ||
-              String(authUser?._id) === String(message.senderId?._id)) && (
-              <button
-                onClick={handleDeleteForEveryone}
-                className="w-full text-left px-3 py-2 rounded bg-red-600 text-white"
-              >
-                Delete for everyone
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </>
+      <DeleteActions
+        onDeleteForMe={handleDeleteForMe}
+        onDeleteForEveryone={handleDeleteForEveryone}
+        canDeleteEveryone={
+          String(authUser?._id) === String(message.senderId) ||
+          String(authUser?._id) === String(message.senderId?._id)
+        }
+      />
+    </ActionModal>
   );
 }
