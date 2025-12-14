@@ -1,5 +1,6 @@
 import express from "express";
 import { protectRoute } from "../middlewares/auth.js";
+import multer from "multer";
 import {
   createGroup,
   getGroups,
@@ -28,7 +29,16 @@ groupRouter.get("/requests", protectRoute, getGroupRequests);
 groupRouter.put("/requests/:id/accept", protectRoute, acceptGroupRequest);
 groupRouter.put("/requests/:id/decline", protectRoute, declineGroupRequest);
 groupRouter.get("/:groupId/messages", protectRoute, getGroupMessages);
-groupRouter.post("/:groupId/messages", protectRoute, sendGroupMessage);
+const upload = multer({ storage: multer.memoryStorage() });
+groupRouter.post(
+  "/:groupId/messages",
+  protectRoute,
+  upload.fields([
+    { name: "audio", maxCount: 1 },
+    { name: "waveform", maxCount: 1 },
+  ]),
+  sendGroupMessage
+);
 groupRouter.get(
   "/:groupId/messages/:messageId/info",
   protectRoute,

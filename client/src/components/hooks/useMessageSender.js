@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-export default function useMessageSender({ sendMessage }) {
+export default function useMessageSender({ sendMessage, sendAudioMessage }) {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
@@ -31,6 +31,25 @@ export default function useMessageSender({ sendMessage }) {
     }
   };
 
+  const handleSendVoice = async ({ audioBlob, waveformBlob, text = "" }) => {
+    if (!audioBlob) return;
+    try {
+      if (sendAudioMessage) {
+        await sendAudioMessage({ audioBlob, waveformBlob, text });
+      } else {
+        // fallback: convert blob to data URL and use sendMessage
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const dataUrl = reader.result;
+          await sendMessage({ text, image: null, audio: dataUrl });
+        };
+        reader.readAsDataURL(audioBlob);
+      }
+    } catch (err) {
+      console.error("Failed to send voice message:", err);
+    }
+  };
+
   return {
     text,
     setText,
@@ -38,6 +57,7 @@ export default function useMessageSender({ sendMessage }) {
     handleImageChange,
     removeImage,
     handleSendMessage,
+    handleSendVoice,
     fileInputRef,
   };
 }

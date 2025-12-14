@@ -2,6 +2,7 @@ import Group from "../models/Group.js";
 import GroupRequest from "../models/GroupRequest.js";
 import GroupMessage from "../models/GroupMessage.js";
 import User from "../models/User.js";
+import cloudinary from "../lib/cloudinary.js";
 import { io, userSocketMap } from "../server.js";
 
 export const createGroup = async (req, res) => {
@@ -253,6 +254,7 @@ export const sendGroupMessage = async (req, res) => {
   try {
     const { groupId } = req.params;
     const { text, image } = req.body;
+    const files = req.files || {};
     const senderId = req.userId;
 
     // Verify user is a member
@@ -265,11 +267,49 @@ export const sendGroupMessage = async (req, res) => {
       return res.status(403).json({ message: "Not a member of this group" });
     }
 
+    let audioUrl;
+    let waveformUrl;
+    if (files.audio && files.audio[0]) {
+      const buf = files.audio[0].buffer;
+      const dataUri = `data:${files.audio[0].mimetype};base64,${buf.toString(
+        "base64"
+      )}`;
+      const uploadResult = await cloudinary.uploader.upload(dataUri, {
+        folder: "vibetalk/group-messages",
+        resource_type: "auto",
+      });
+      audioUrl = uploadResult.secure_url;
+    } else if (req.body.audio) {
+      const uploadResult = await cloudinary.uploader.upload(req.body.audio, {
+        folder: "vibetalk/group-messages",
+        resource_type: "auto",
+      });
+      audioUrl = uploadResult.secure_url;
+    }
+
+    if (files.waveform && files.waveform[0]) {
+      const wfBuf = files.waveform[0].buffer;
+      const wfDataUri = `data:${
+        files.waveform[0].mimetype
+      };base64,${wfBuf.toString("base64")}`;
+      const wfRes = await cloudinary.uploader.upload(wfDataUri, {
+        folder: "vibetalk/group-messages/waveforms",
+      });
+      waveformUrl = wfRes.secure_url;
+    } else if (req.body.waveform) {
+      const wfRes = await cloudinary.uploader.upload(req.body.waveform, {
+        folder: "vibetalk/group-messages/waveforms",
+      });
+      waveformUrl = wfRes.secure_url;
+    }
+
     const message = new GroupMessage({
       senderId,
       groupId,
       text: text || "",
       image: image || "",
+      audio: audioUrl || "",
+      waveform: waveformUrl || "",
       seenBy: [senderId],
     });
 

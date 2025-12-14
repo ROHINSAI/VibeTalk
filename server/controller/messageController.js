@@ -126,6 +126,8 @@ export const markMessagesAsSeen = async (req, res) => {
 export const sendMessage = async (req, res) => {
   try {
     const { text, image } = req.body;
+    // multer places files in req.files when using upload.fields
+    const files = req.files || {};
     const senderId = req.userId;
     const receiverId = req.params.userId;
 
@@ -137,11 +139,51 @@ export const sendMessage = async (req, res) => {
       imageUrl = uploadResult.secure_url;
     }
 
+    let audioUrl;
+    let waveformUrl;
+    // If multipart audio file uploaded via multer
+    if (files.audio && files.audio[0]) {
+      const buf = files.audio[0].buffer;
+      const dataUri = `data:${files.audio[0].mimetype};base64,${buf.toString(
+        "base64"
+      )}`;
+      const uploadResult = await cloudinary.uploader.upload(dataUri, {
+        folder: "vibetalk/messages",
+        resource_type: "auto",
+      });
+      audioUrl = uploadResult.secure_url;
+    } else if (req.body.audio) {
+      const uploadResult = await cloudinary.uploader.upload(req.body.audio, {
+        folder: "vibetalk/messages",
+        resource_type: "auto",
+      });
+      audioUrl = uploadResult.secure_url;
+    }
+
+    // waveform image upload if provided
+    if (files.waveform && files.waveform[0]) {
+      const wfBuf = files.waveform[0].buffer;
+      const wfDataUri = `data:${
+        files.waveform[0].mimetype
+      };base64,${wfBuf.toString("base64")}`;
+      const wfRes = await cloudinary.uploader.upload(wfDataUri, {
+        folder: "vibetalk/messages/waveforms",
+      });
+      waveformUrl = wfRes.secure_url;
+    } else if (req.body.waveform) {
+      const wfRes = await cloudinary.uploader.upload(req.body.waveform, {
+        folder: "vibetalk/messages/waveforms",
+      });
+      waveformUrl = wfRes.secure_url;
+    }
+
     const newMessage = new Message({
       senderId,
       receiverId,
       text,
       image: imageUrl,
+      audio: audioUrl,
+      waveform: waveformUrl,
       seen: false,
     });
 

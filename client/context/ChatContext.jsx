@@ -147,7 +147,7 @@ export const ChatProvider = ({ children }) => {
     });
   };
 
-  const sendMessage = async ({ text, image }) => {
+  const sendMessage = async ({ text, image, audio } = {}) => {
     if (selectedGroup) {
       try {
         const res = await axios.post(
@@ -155,6 +155,7 @@ export const ChatProvider = ({ children }) => {
           {
             text,
             image,
+            audio,
           }
         );
         const newMsg = res.data.message;
@@ -167,12 +168,56 @@ export const ChatProvider = ({ children }) => {
         const res = await axios.post(`/api/messages/send/${selectedUser._id}`, {
           text,
           image,
+          audio,
         });
         const newMsg = res.data.newMessage;
         setMessages((prev) => [...prev, newMsg]);
       } catch (err) {
         console.error("sendMessage error:", err);
       }
+    }
+  };
+
+  const sendAudioMessage = async ({ audioBlob, waveformBlob, text = "" }) => {
+    if (!audioBlob) return null;
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "voice.webm");
+      if (waveformBlob)
+        formData.append("waveform", waveformBlob, "waveform.png");
+      if (text) formData.append("text", text);
+
+      toast.loading("Uploading voice message...");
+
+      let res;
+      if (selectedGroup) {
+        res = await axios.post(
+          `/api/groups/${selectedGroup._id}/messages`,
+          formData
+        );
+        const newMsg = res.data.message;
+        setMessages((prev) => [...prev, newMsg]);
+        toast.dismiss();
+        toast.success("Voice message sent");
+        return newMsg;
+      } else if (selectedUser) {
+        res = await axios.post(
+          `/api/messages/send/${selectedUser._id}`,
+          formData
+        );
+        const newMsg = res.data.newMessage;
+        setMessages((prev) => [...prev, newMsg]);
+        toast.dismiss();
+        toast.success("Voice message sent");
+        return newMsg;
+      }
+      toast.dismiss();
+      return null;
+    } catch (err) {
+      toast.dismiss();
+      toast.error("Failed to upload voice message");
+      console.error("sendAudioMessage error:", err);
+      return null;
     }
   };
 

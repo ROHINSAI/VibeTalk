@@ -35,6 +35,7 @@ function ChatContainer({
     setSelectedGroup,
     getGroupMessages,
   } = useContext(ChatContext);
+  const { sendAudioMessage } = useContext(ChatContext);
 
   const { authUser, onlineUsers, axios } = useContext(AuthContext);
 
@@ -45,8 +46,9 @@ function ChatContainer({
     handleImageChange,
     removeImage,
     handleSendMessage,
+    handleSendVoice,
     fileInputRef,
-  } = useMessageSender({ sendMessage });
+  } = useMessageSender({ sendMessage, sendAudioMessage });
   const [forwardingMessage, setForwardingMessage] = useState(null);
   const [isForwardOpen, setIsForwardOpen] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
@@ -141,6 +143,7 @@ function ChatContainer({
         imagePreview={imagePreview}
         handleImageChange={handleImageChange}
         handleSendMessage={handleSendMessage}
+        handleSendVoice={handleSendVoice}
         fileInputRef={fileInputRef}
       />
 

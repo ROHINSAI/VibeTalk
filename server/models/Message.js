@@ -14,6 +14,8 @@ const messageSchema = new mongoose.Schema(
     },
     text: { type: String, default: "" },
     image: { type: String, default: "" },
+    audio: { type: String, default: "" },
+    waveform: { type: String, default: "" },
     seen: { type: Boolean, default: false },
     edited: { type: Boolean, default: false },
     deletedFor: [

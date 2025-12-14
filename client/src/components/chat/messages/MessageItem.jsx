@@ -58,7 +58,18 @@ export default function MessageItem({
           </p>
         )}
 
-        {msg.image ? (
+        {msg.audio ? (
+          <div className="p-2 bg-transparent">
+            {msg.waveform && (
+              <img
+                src={msg.waveform}
+                alt="waveform"
+                className="mb-2 max-w-[230px] rounded"
+              />
+            )}
+            <audio controls src={msg.audio} className="max-w-[230px]" />
+          </div>
+        ) : msg.image ? (
           <img
             src={msg.image}
             alt="message"
