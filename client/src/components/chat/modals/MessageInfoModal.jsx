@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../../context/AuthContext";
-import { ChatContext } from "../../../context/ChatContext";
-import assets from "../../assets/assets";
+import { AuthContext } from "../../../../context/AuthContext";
+import { ChatContext } from "../../../../context/ChatContext";
+import assets from "../../../assets/assets";
 
 export default function MessageInfoModal({ open, onClose, message }) {
   const { axios } = useContext(AuthContext);

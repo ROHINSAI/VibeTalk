@@ -1,11 +1,11 @@
 import { useContext, useState, useRef } from "react";
-import { AuthContext } from "../../../context/AuthContext";
-import { ChatContext } from "../../../context/ChatContext";
-import assets from "../../assets/assets";
+import { AuthContext } from "../../../../context/AuthContext";
+import { ChatContext } from "../../../../context/ChatContext";
+import assets from "../../../assets/assets";
 import toast from "react-hot-toast";
-import CreateGroupSearch from "./CreateGroupSearch";
-import CreateGroupMemberList from "./CreateGroupMemberList";
-import CreateGroupDetails from "./CreateGroupDetails";
+import CreateGroupSearch from "../ui/CreateGroupSearch";
+import CreateGroupMemberList from "../members/CreateGroupMemberList";
+import CreateGroupDetails from "../create/CreateGroupDetails";
 
 export default function CreateGroupModal({ open, onClose }) {
   const { axios, authUser } = useContext(AuthContext);

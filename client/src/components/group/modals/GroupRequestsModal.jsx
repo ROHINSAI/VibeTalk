@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
-import { AuthContext } from "../../../context/AuthContext";
-import assets from "../../assets/assets";
+import { AuthContext } from "../../../../context/AuthContext";
+import assets from "../../../assets/assets";
 import toast from "react-hot-toast";
 
 export default function GroupRequestsModal({

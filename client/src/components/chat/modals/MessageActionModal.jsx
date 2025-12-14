@@ -1,13 +1,13 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../../context/AuthContext";
-import { ChatContext } from "../../../context/ChatContext";
+import { AuthContext } from "../../../../context/AuthContext";
+import { ChatContext } from "../../../../context/ChatContext";
 import toast from "react-hot-toast";
-import ActionModal from "./ActionModal";
-import ForwardAction from "./actions/ForwardAction";
-import CopyAction from "./actions/CopyAction";
-import StarAction from "./actions/StarAction";
-import EditAction from "./actions/EditAction";
-import DeleteActions from "./actions/DeleteActions";
+import ActionModal from "../ui/ActionModal";
+import ForwardAction from "../actions/ForwardAction";
+import CopyAction from "../actions/CopyAction";
+import StarAction from "../actions/StarAction";
+import EditAction from "../actions/EditAction";
+import DeleteActions from "../actions/DeleteActions";
 
 export default function MessageActionModal({
   open,

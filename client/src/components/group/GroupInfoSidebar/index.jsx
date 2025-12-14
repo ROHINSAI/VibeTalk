@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import { ChatContext } from "../../../context/ChatContext";
-import { AuthContext } from "../../../context/AuthContext";
+import { ChatContext } from "../../../../context/ChatContext";
+import { AuthContext } from "../../../../context/AuthContext";
 import toast from "react-hot-toast";
 import GroupHeader from "./GroupHeader";
 import MediaGrid from "./MediaGrid";

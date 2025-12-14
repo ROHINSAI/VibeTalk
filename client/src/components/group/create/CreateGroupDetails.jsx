@@ -1,4 +1,4 @@
-import CreateGroupPicUploader from "./CreateGroupPicUploader";
+import CreateGroupPicUploader from "../ui/CreateGroupPicUploader";
 
 export default function CreateGroupDetails({
   groupName,

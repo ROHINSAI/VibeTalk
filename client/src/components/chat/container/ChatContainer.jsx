@@ -1,17 +1,17 @@
-import assets from "../../assets/assets";
+import assets from "../../../assets/assets";
 import { useContext, useEffect, useRef, useState } from "react";
-import { ChatContext } from "../../../context/ChatContext";
-import { AuthContext } from "../../../context/AuthContext";
-import ForwardModal from "./ForwardModal";
-import MessageActionModal from "./MessageActionModal";
-import MessageInfoModal from "./MessageInfoModal";
-import ChatHeader from "./ChatHeader";
-import MessageList from "./MessageList";
-import MessageInput from "./MessageInput";
-import ImagePreview from "./ImagePreview";
-import ScrollButton from "./ScrollButton";
-import useChatLogic from "../hooks/useChatLogic";
-import useMessageSender from "../hooks/useMessageSender";
+import { ChatContext } from "../../../../context/ChatContext";
+import { AuthContext } from "../../../../context/AuthContext";
+import ForwardModal from "../forward/ForwardModal";
+import MessageActionModal from "../modals/MessageActionModal";
+import MessageInfoModal from "../modals/MessageInfoModal";
+import ChatHeader from "../layout/ChatHeader";
+import MessageList from "../messages/MessageList";
+import MessageInput from "../input/MessageInput";
+import ImagePreview from "../ui/ImagePreview";
+import ScrollButton from "../ui/ScrollButton";
+import useChatLogic from "../../hooks/useChatLogic";
+import useMessageSender from "../../hooks/useMessageSender";
 
 function ChatContainer({
   showRightSidebar,
