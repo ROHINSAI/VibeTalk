@@ -5,6 +5,8 @@ import { Toaster } from "react-hot-toast";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
+import IncomingCallModal from "./components/call/IncomingCallModal";
+import ActiveCallBar from "./components/call/ActiveCallBar";
 
 import { AuthContext } from "../context/AuthContext";
 
@@ -14,6 +16,10 @@ const App = () => {
   return (
     <div className="bg-[url('/bgImage.svg')] bg-contain min-h-screen">
       <Toaster position="top-right" reverseOrder={false} />
+
+      {/* Call UI Components */}
+      <IncomingCallModal />
+      <ActiveCallBar />
 
       <Routes>
         <Route

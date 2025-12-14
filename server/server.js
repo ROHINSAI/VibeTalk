@@ -107,6 +107,46 @@ io.on("connection", (socket) => {
       console.warn("Error scheduling lastSeen update:", err.message || err);
     }
   });
+
+  // WebRTC signaling events for voice/video calls
+  socket.on("callRequest", ({ to, from, offer, callType }) => {
+    const recipientSocketId = userSocketMap.get(to);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit("incomingCall", {
+        from,
+        offer,
+        callType,
+      });
+    }
+  });
+
+  socket.on("callAccepted", ({ to, answer }) => {
+    const callerSocketId = userSocketMap.get(to);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit("callAccepted", { answer });
+    }
+  });
+
+  socket.on("callRejected", ({ to }) => {
+    const callerSocketId = userSocketMap.get(to);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit("callRejected");
+    }
+  });
+
+  socket.on("iceCandidate", ({ to, candidate }) => {
+    const recipientSocketId = userSocketMap.get(to);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit("iceCandidate", { candidate });
+    }
+  });
+
+  socket.on("endCall", ({ to }) => {
+    const recipientSocketId = userSocketMap.get(to);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit("callEnded");
+    }
+  });
 });
 
 const PORT = process.env.PORT || 8000;
