@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import { ChatContext } from "../../context/ChatContext";
+import { AuthContext } from "../../../context/AuthContext";
+import { ChatContext } from "../../../context/ChatContext";
 import toast from "react-hot-toast";
 
 export default function MessageActionModal({
@@ -20,20 +20,17 @@ export default function MessageActionModal({
   const [starred, setStarred] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState("");
-  const [showMessageInfo, setShowMessageInfo] = useState(false);
 
   useEffect(() => {
     if (!open || !message) return;
     let mounted = true;
     (async () => {
       try {
-        // Star check works for both regular and group messages
         const res = await axios.get(`/api/messages/star/${message._id}`);
         if (!mounted) return;
         setStarred(!!res.data?.starred);
       } catch (err) {
         console.error("isStarred check failed:", err);
-        // If error, assume not starred
         if (mounted) setStarred(false);
       }
     })();
@@ -98,7 +95,6 @@ export default function MessageActionModal({
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(textToCopy);
       } else {
-        // fallback
         const el = document.createElement("textarea");
         el.value = textToCopy;
         document.body.appendChild(el);
@@ -167,8 +163,6 @@ export default function MessageActionModal({
               {starred ? "Remove from starred" : "Add to starred"}
             </button>
 
-            {/* Message Info removed from action modal; opened via Seen indicator in chat */}
-
             {String(authUser?._id) === String(message.senderId) &&
               !message.image && (
                 <>
@@ -191,7 +185,6 @@ export default function MessageActionModal({
                         <button
                           onClick={async () => {
                             const prevText = message.text;
-                            // optimistic update
                             try {
                               updateMessage({
                                 _id: message._id,
@@ -201,15 +194,11 @@ export default function MessageActionModal({
                             } catch (e) {
                               console.warn("optimistic update failed:", e);
                             }
-
                             try {
                               const res = await axios.put(
                                 `/api/messages/edit/${message._id}`,
-                                {
-                                  text: editText,
-                                }
+                                { text: editText }
                               );
-                              // reconcile with server response if provided
                               const updated = res.data.msg || res.data;
                               if (updated && updated._id) {
                                 updateMessage(updated);
@@ -218,7 +207,6 @@ export default function MessageActionModal({
                               onClose();
                             } catch (err) {
                               console.error("edit failed:", err);
-                              // rollback optimistic change
                               try {
                                 updateMessage({
                                   _id: message._id,
@@ -267,8 +255,6 @@ export default function MessageActionModal({
           </div>
         </div>
       </div>
-
-      {/* MessageInfoModal moved to ChatContainer; keep action modal focused on actions only */}
     </>
   );
 }

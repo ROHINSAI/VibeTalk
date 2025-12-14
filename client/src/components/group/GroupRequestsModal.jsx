@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import assets from "../assets/assets";
+import { AuthContext } from "../../../context/AuthContext";
+import assets from "../../assets/assets";
 import toast from "react-hot-toast";
 
 export default function GroupRequestsModal({
@@ -11,12 +11,11 @@ export default function GroupRequestsModal({
 }) {
   const { axios, authUser } = useContext(AuthContext);
   const [loading, setLoading] = useState({});
-  const [showWarning, setShowWarning] = useState(null); // { requestId, nonFriendNames }
+  const [showWarning, setShowWarning] = useState(null);
 
   if (!open) return null;
 
   const handleAccept = async (request) => {
-    // Check if there are non-friend members and show warning
     if (request.hasNonFriendMembers && !showWarning) {
       setShowWarning({
         requestId: request._id,

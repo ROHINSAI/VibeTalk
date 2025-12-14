@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from "react";
-import { ChatContext } from "../../context/ChatContext";
-import { AuthContext } from "../../context/AuthContext";
+import { ChatContext } from "../../../context/ChatContext";
+import { AuthContext } from "../../../context/AuthContext";
 import toast from "react-hot-toast";
 
 export default function GroupInfoSidebar({ group }) {
@@ -10,7 +10,6 @@ export default function GroupInfoSidebar({ group }) {
 
   if (!group) return null;
 
-  // defensive: ensure members and onlineUsers are arrays
   const members = Array.isArray(group?.members) ? group.members : [];
   const onlineUsersList = Array.isArray(onlineUsers) ? onlineUsers : [];
 
@@ -20,7 +19,7 @@ export default function GroupInfoSidebar({ group }) {
       try {
         const res = await axios.get(`/api/groups/${group._id}/messages`);
         const messages = res.data.messages || [];
-        const mediaMessages = messages.filter((m) => m.image).slice(-12); // Last 12 media
+        const mediaMessages = messages.filter((m) => m.image).slice(-12);
         setMedia(mediaMessages);
       } catch (err) {
         console.error("Failed to fetch media:", err);
@@ -41,7 +40,6 @@ export default function GroupInfoSidebar({ group }) {
     }
   };
 
-  // Count online members
   const onlineMembersCount = members.filter(
     (member) =>
       Array.isArray(onlineUsersList) &&
@@ -94,7 +92,6 @@ export default function GroupInfoSidebar({ group }) {
       </div>
       <hr className="border-[#ffffff50] my-4" />
 
-      {/* Media Section */}
       <div className="px-5 text-xs">
         <p>Media</p>
         {media.length > 0 ? (
@@ -122,7 +119,6 @@ export default function GroupInfoSidebar({ group }) {
 
       <hr className="border-[#ffffff50] my-4" />
 
-      {/* Members Section */}
       <div className="px-5 text-xs mb-20">
         <p className="mb-2">Members ({members.length})</p>
         <div className="flex flex-col gap-2">
@@ -147,7 +143,7 @@ export default function GroupInfoSidebar({ group }) {
               >
                 <div className="relative">
                   <img
-                    src={member.ProfilePic || "/avatar_icon.png"} // Fallback handling provided by src or error
+                    src={member.ProfilePic || "/avatar_icon.png"}
                     alt={member.fullName}
                     className="w-8 h-8 rounded-full object-cover"
                   />
@@ -156,7 +152,9 @@ export default function GroupInfoSidebar({ group }) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm truncate">{member.fullName}</p>
+                  <p className="text-white text-sm truncate">
+                    {member.fullName}
+                  </p>
                   {(isCreator || isAdmin) && (
                     <p className="text-gray-400 text-[10px]">
                       {isCreator ? "Group Creator" : "Admin"}
@@ -172,8 +170,7 @@ export default function GroupInfoSidebar({ group }) {
       <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex flex-col gap-2 w-[calc(100%-40px)] bg-[#1a1625] pt-2">
         <button
           onClick={handleLeaveGroup}
-          className="w-full bg-red-600 hover:bg-red-700 text-white
-             border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all shadow-lg"
+          className="w-full bg-red-600 hover:bg-red-700 text-white border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all shadow-lg"
         >
           Leave Group
         </button>

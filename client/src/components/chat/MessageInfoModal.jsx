@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import { ChatContext } from "../../context/ChatContext";
-import assets from "../assets/assets";
+import { AuthContext } from "../../../context/AuthContext";
+import { ChatContext } from "../../../context/ChatContext";
+import assets from "../../assets/assets";
 
 export default function MessageInfoModal({ open, onClose, message }) {
   const { axios } = useContext(AuthContext);
@@ -20,7 +20,6 @@ export default function MessageInfoModal({ open, onClose, message }) {
 
     setLoading(true);
     try {
-      // Get the message details with seenBy populated
       const res = await axios.get(
         `/api/groups/${selectedGroup._id}/messages/${message._id}/info`
       );

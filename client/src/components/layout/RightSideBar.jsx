@@ -1,7 +1,7 @@
-import assets from "../assets/assets";
+import assets from "../../assets/assets";
 import React, { useContext, useMemo } from "react";
-import { ChatContext } from "../../context/ChatContext";
-import { AuthContext } from "../../context/AuthContext";
+import { ChatContext } from "../../../context/ChatContext";
+import { AuthContext } from "../../../context/AuthContext";
 
 const RightSidebar = () => {
   const { selectedUser, messages } = useContext(ChatContext);
@@ -14,9 +14,10 @@ const RightSidebar = () => {
     authUser,
   } = useContext(AuthContext);
 
-  const mediaImages = useMemo(() => {
-    return messages.filter((msg) => msg.image).map((msg) => msg.image);
-  }, [messages]);
+  const mediaImages = useMemo(
+    () => messages.filter((msg) => msg.image).map((msg) => msg.image),
+    [messages]
+  );
 
   const isOnline =
     selectedUser && onlineUsers?.includes(String(selectedUser._id));
@@ -111,22 +112,19 @@ const RightSidebar = () => {
         <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex flex-col gap-2 w-[calc(100%-40px)]">
           <button
             onClick={handleRemoveFriend}
-            className="w-full bg-red-600 hover:bg-red-700 text-white
-               border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all"
+            className="w-full bg-red-600 hover:bg-red-700 text-white border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all"
           >
             Remove Friend
           </button>
           <button
             onClick={handleBlockToggle}
-            className="w-full bg-gray-700 hover:bg-gray-800 text-white
-               border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all"
+            className="w-full bg-gray-700 hover:bg-gray-800 text-white border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all"
           >
             {isBlocked() ? "Unblock" : "Block"}
           </button>
           <button
             onClick={logout}
-            className="w-full bg-gradient-to-r from-purple-400 to-violet-600 text-white
-               border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer hover:from-purple-500 hover:to-violet-700 transition-all"
+            className="w-full bg-gradient-to-r from-purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer hover:from-purple-500 hover:to-violet-700 transition-all"
           >
             Logout
           </button>

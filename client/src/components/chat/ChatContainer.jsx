@@ -1,7 +1,7 @@
-import assets from "../assets/assets";
+import assets from "../../assets/assets";
 import { useContext, useEffect, useRef, useState } from "react";
-import { ChatContext } from "../../context/ChatContext";
-import { AuthContext } from "../../context/AuthContext";
+import { ChatContext } from "../../../context/ChatContext";
+import { AuthContext } from "../../../context/AuthContext";
 import ForwardModal from "./ForwardModal";
 import MessageActionModal from "./MessageActionModal";
 import MessageInfoModal from "./MessageInfoModal";
@@ -10,8 +10,8 @@ import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import ImagePreview from "./ImagePreview";
 import ScrollButton from "./ScrollButton";
-import useChatLogic from "./useChatLogic";
-import useMessageSender from "./useMessageSender";
+import useChatLogic from "../hooks/useChatLogic";
+import useMessageSender from "../hooks/useMessageSender";
 
 function ChatContainer({
   showRightSidebar,
@@ -74,8 +74,6 @@ function ChatContainer({
 
   const isOnline =
     selectedUser && onlineUsers?.includes(String(selectedUser._id));
-
-  // The last message sent by me that was seen by the recipient.
 
   return selectedUser || selectedGroup ? (
     <div className="flex flex-col h-full min-h-0">

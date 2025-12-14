@@ -41,7 +41,6 @@ export default function useChatLogic({
     }
   }, [messages, isAtBottom, scrollToMessageId, setScrollToMessageId]);
 
-  // seen animation detection
   useEffect(() => {
     try {
       const prev = prevMessagesRef.current || [];

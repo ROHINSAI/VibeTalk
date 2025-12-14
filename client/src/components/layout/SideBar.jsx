@@ -1,10 +1,10 @@
 import React, { useContext, useState } from "react";
-import assets from "../assets/assets";
-import { AuthContext } from "../../context/AuthContext.jsx";
-import { ChatContext } from "../../context/ChatContext.jsx";
+import assets from "../../assets/assets";
+import { AuthContext } from "../../../context/AuthContext.jsx";
+import { ChatContext } from "../../../context/ChatContext.jsx";
 import { useNavigate } from "react-router-dom";
-import CreateGroupModal from "./CreateGroupModal";
-import GroupRequestsModal from "./GroupRequestsModal";
+import CreateGroupModal from "../group/CreateGroupModal";
+import GroupRequestsModal from "../group/GroupRequestsModal";
 
 function SideBar() {
   const {
@@ -35,7 +35,7 @@ function SideBar() {
   const [friendUserId, setFriendUserId] = useState("");
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [showGroupRequestsModal, setShowGroupRequestsModal] = useState(false);
-  const [activeTab, setActiveTab] = useState("friends"); // "friends" or "groups"
+  const [activeTab, setActiveTab] = useState("friends");
 
   const filteredUsers = users.filter((user) =>
     user.fullName.toLowerCase().includes(searchQuery.toLowerCase())

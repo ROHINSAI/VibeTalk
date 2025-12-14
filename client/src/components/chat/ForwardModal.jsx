@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import { ChatContext } from "../../context/ChatContext";
-import assets from "../assets/assets";
+import { AuthContext } from "../../../context/AuthContext";
+import { ChatContext } from "../../../context/ChatContext";
+import assets from "../../assets/assets";
 import toast from "react-hot-toast";
 
 export default function ForwardModal({ open, onClose, message }) {
@@ -9,11 +9,10 @@ export default function ForwardModal({ open, onClose, message }) {
   const { users, getUsers, groups, getGroups } = useContext(ChatContext);
   const [selectedFriends, setSelectedFriends] = useState(new Set());
   const [selectedGroups, setSelectedGroups] = useState(new Set());
-  const [activeTab, setActiveTab] = useState("friends"); // "friends" or "groups"
+  const [activeTab, setActiveTab] = useState("friends");
 
   useEffect(() => {
     if (open) {
-      // refresh friends and groups list
       getUsers();
       getGroups();
       setSelectedFriends(new Set());
@@ -61,7 +60,6 @@ export default function ForwardModal({ open, onClose, message }) {
       const friendPromises = friendIds.map((friendId) =>
         axios.post(`/api/messages/send/${friendId}`, payload)
       );
-
       const groupPromises = groupIds.map((groupId) =>
         axios.post(`/api/groups/${groupId}/messages`, payload)
       );
@@ -104,7 +102,6 @@ export default function ForwardModal({ open, onClose, message }) {
           )}
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-3 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("friends")}
