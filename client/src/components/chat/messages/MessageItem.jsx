@@ -77,7 +77,12 @@ export default function MessageItem({
         )}
 
         <p className="text-gray-500 text-xs mt-1">
-          {new Date(msg.createdAt).toLocaleString()}
+          {(() => {
+            const d = new Date(msg.createdAt);
+            const hh = String(d.getHours()).padStart(2, "0");
+            const mm = String(d.getMinutes()).padStart(2, "0");
+            return `${hh}:${mm}`;
+          })()}
           {msg.edited && (
             <span className="text-gray-400 italic text-[11px] ml-2">
               (edited)
