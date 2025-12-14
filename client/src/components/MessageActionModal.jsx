@@ -2,7 +2,6 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import toast from "react-hot-toast";
-import MessageInfoModal from "./MessageInfoModal";
 
 export default function MessageActionModal({
   open,
@@ -168,17 +167,7 @@ export default function MessageActionModal({
               {starred ? "Remove from starred" : "Add to starred"}
             </button>
 
-            {selectedGroup && (
-              <button
-                onClick={() => {
-                  setShowMessageInfo(true);
-                  onClose();
-                }}
-                className="w-full text-left px-3 py-2 rounded bg-indigo-600 text-white"
-              >
-                Message Info
-              </button>
-            )}
+            {/* Message Info removed from action modal; opened via Seen indicator in chat */}
 
             {String(authUser?._id) === String(message.senderId) &&
               !message.image && (
@@ -279,11 +268,7 @@ export default function MessageActionModal({
         </div>
       </div>
 
-      <MessageInfoModal
-        open={showMessageInfo}
-        onClose={() => setShowMessageInfo(false)}
-        message={message}
-      />
+      {/* MessageInfoModal moved to ChatContainer; keep action modal focused on actions only */}
     </>
   );
 }
