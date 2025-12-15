@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { ChatContext } from "../../../../context/ChatContext";
 import toast from "react-hot-toast";
-import assets from "../../../../assets/assets";
+import assets from "../../../assets/assets";
 
 export default function AddMembersModal({
   open,

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import assets from "../../../../assets/assets";
+import assets from "../../../assets/assets";
 
 export default function MemberList({
   members = [],
