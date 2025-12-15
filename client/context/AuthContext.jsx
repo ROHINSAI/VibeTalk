@@ -53,6 +53,13 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
+      // Only check auth if we have a token
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setAuthUser(null);
+        return;
+      }
+
       const res = await axios.get("/api/users/check");
       const user = res.data.user;
       setAuthUser(user);
@@ -63,6 +70,9 @@ export const AuthProvider = ({ children }) => {
       setFriendRequests(friendReqRes.data);
     } catch (error) {
       console.error("checkAuth error:", error);
+      // Clear invalid token
+      localStorage.removeItem("token");
+      delete axios.defaults.headers.common["Authorization"];
       setAuthUser(null);
       socket?.disconnect();
       setSocket(null);
@@ -76,8 +86,28 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
 
+    // Add response interceptor to handle 401 errors
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          // Token is invalid, clear it
+          localStorage.removeItem("token");
+          delete axios.defaults.headers.common["Authorization"];
+          setAuthUser(null);
+          socket?.disconnect();
+          setSocket(null);
+        }
+        return Promise.reject(error);
+      }
+    );
+
     checkAuth();
-    return () => socket?.disconnect();
+    
+    return () => {
+      socket?.disconnect();
+      axios.interceptors.response.eject(interceptor);
+    };
   }, []);
 
   const login = async (state, credentials) => {
