@@ -26,6 +26,10 @@ export const ChatProvider = ({ children }) => {
 
   const getUsers = async () => {
     try {
+      // Ensure token is set before making request
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
       const res = await axios.get("/api/messages/users");
       setUsers(res.data.users || []);
       setUnseenMessages(res.data.unseenMessages || {});
@@ -36,6 +40,10 @@ export const ChatProvider = ({ children }) => {
 
   const getStarredIds = async () => {
     try {
+      // Ensure token is set before making request
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
       const res = await axios.get("/api/messages/starred");
       const starred = res.data.starred || [];
       setStarredIds(new Set(starred.map((m) => m._id)));
@@ -46,6 +54,10 @@ export const ChatProvider = ({ children }) => {
 
   const getGroups = async () => {
     try {
+      // Ensure token is set before making request
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
       const res = await axios.get("/api/groups");
       setGroups(res.data.groups || []);
     } catch (err) {
@@ -55,6 +67,10 @@ export const ChatProvider = ({ children }) => {
 
   const getGroupRequests = async () => {
     try {
+      // Ensure token is set before making request
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
       const res = await axios.get("/api/groups/requests");
       setGroupRequests(res.data.requests || []);
     } catch (err) {
