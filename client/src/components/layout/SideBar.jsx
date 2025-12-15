@@ -5,6 +5,8 @@ import { ChatContext } from "../../../context/ChatContext.jsx";
 import { useNavigate } from "react-router-dom";
 import CreateGroupModal from "../group/modals/CreateGroupModal";
 import GroupRequestsModal from "../group/modals/GroupRequestsModal";
+import GeminiChat from "../chat/GeminiChat.jsx"; // Corrected import path and typo
+import { Sparkles } from "lucide-react"; // Added Sparkles icon for Gemini button
 
 function SideBar() {
   const {
@@ -36,6 +38,7 @@ function SideBar() {
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [showGroupRequestsModal, setShowGroupRequestsModal] = useState(false);
   const [activeTab, setActiveTab] = useState("friends");
+  const [isGeminiOpen, setIsGeminiOpen] = useState(false); // New state for Gemini chat
 
   const filteredUsers = users.filter((user) =>
     user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -149,6 +152,15 @@ function SideBar() {
             )}
           </button>
         </div>
+        {/* Gemini Chat Button */}
+        <button
+          onClick={() => setIsGeminiOpen(true)}
+          className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white text-xs py-2 px-3 rounded-full transition-colors flex items-center justify-center gap-2"
+          title="Gemini Assistant"
+        >
+          <Sparkles size={16} />
+          Gemini Assistant
+        </button>
       </div>
 
       <div className="flex flex-col">
@@ -392,6 +404,8 @@ function SideBar() {
           getGroups();
         }}
       />
+
+      <GeminiChat isOpen={isGeminiOpen} onClose={() => setIsGeminiOpen(false)} />
     </div>
   );
 }
