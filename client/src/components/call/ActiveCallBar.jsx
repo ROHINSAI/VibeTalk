@@ -41,9 +41,11 @@ export default function ActiveCallBar() {
 
   useEffect(() => {
     if (remoteStream && remoteVideoRef.current) {
-      console.log("ActiveCallBar: Setting remote stream", remoteStream.id, remoteStream.getTracks());
-      remoteVideoRef.current.srcObject = remoteStream;
-      remoteVideoRef.current.play().catch(e => console.error("Error playing remote video:", e));
+      if (remoteVideoRef.current.srcObject !== remoteStream) {
+        console.log("ActiveCallBar: Setting remote stream", remoteStream.id, remoteStream.getTracks());
+        remoteVideoRef.current.srcObject = remoteStream;
+        remoteVideoRef.current.play().catch(e => console.error("Error playing remote video:", e));
+      }
     }
   }, [remoteStream]);
 

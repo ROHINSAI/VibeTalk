@@ -43,17 +43,29 @@ export const CallProvider = ({ children }) => {
     pc.ontrack = (event) => {
       console.log("Received remote track:", event.track.kind);
       
-      const stream = event.streams[0] || new MediaStream();
-      
-      if (!event.streams[0]) {
-        stream.addTrack(event.track);
+      let stream = remoteStreamRef.current; // access ref directly
+
+      if (!stream) {
+        console.log("Initializing remote stream");
+        // Prefer the stream from the event if valid
+        stream = event.streams[0] || new MediaStream();
+        remoteStreamRef.current = stream;
+        setRemoteStream(stream);
+      } else {
+         console.log("Adding track to existing remote stream");
+         // If track is not in the stream, add it (though it might already be if event.streams[0] was the same object)
+         if (!stream.getTracks().some(t => t.id === event.track.id)) {
+            stream.addTrack(event.track);
+         }
       }
 
-      console.log("Remote stream tracks:", stream.getTracks().length);
-      remoteStreamRef.current = stream;
+      // If we used the event's stream, ensure we added the track (redundant but safe)
+      // Actually, if event.streams[0] was passed, the track is already in it.
       
-      // Force state update with new reference to trigger UI
-      setRemoteStream(new MediaStream(stream.getTracks())); 
+      console.log("Remote stream now has tracks:", stream.getTracks().length);
+      
+      // We do NOT call setRemoteStream(new MediaStream(...)) here. 
+      // This keeps the reference stable. The video element will play new tracks automatically.
     };
 
     pc.oniceconnectionstatechange = () => {
