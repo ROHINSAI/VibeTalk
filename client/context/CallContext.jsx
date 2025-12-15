@@ -28,13 +28,13 @@ export const CallProvider = ({ children }) => {
   const iceCandidatesQueue = useRef([]);
 
   // Initialize peer connection
-  const createPeerConnection = () => {
+  const createPeerConnection = (remoteUserId) => {
     const pc = new RTCPeerConnection(ICE_SERVERS);
 
     pc.onicecandidate = (event) => {
-      if (event.candidate && activeCall) {
+      if (event.candidate) {
         socket?.emit("iceCandidate", {
-          to: activeCall.userId,
+          to: remoteUserId,
           candidate: event.candidate,
         });
       }
@@ -59,9 +59,6 @@ export const CallProvider = ({ children }) => {
          }
       }
 
-      // If we used the event's stream, ensure we added the track (redundant but safe)
-      // Actually, if event.streams[0] was passed, the track is already in it.
-      
       console.log("Remote stream now has tracks:", stream.getTracks().length);
       
       // We do NOT call setRemoteStream(new MediaStream(...)) here. 
@@ -106,7 +103,7 @@ export const CallProvider = ({ children }) => {
       localStreamRef.current = stream;
       setLocalStream(stream);
 
-      const pc = createPeerConnection();
+      const pc = createPeerConnection(String(user._id));
       stream.getTracks().forEach((track) => {
         console.log("Adding local track to peer connection:", track.kind);
         pc.addTrack(track, stream);
@@ -153,7 +150,7 @@ export const CallProvider = ({ children }) => {
       localStreamRef.current = stream;
       setLocalStream(stream);
 
-      const pc = createPeerConnection();
+      const pc = createPeerConnection(incomingCall.from);
       stream.getTracks().forEach((track) => {
         console.log(
           "Adding local track (callee) to peer connection:",
