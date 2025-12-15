@@ -12,8 +12,8 @@ import AddMembersModal from "../modals/AddMembersModal";
 import { motion } from "framer-motion";
 
 export default function GroupInfoSidebar({ group, onClose }) {
-  const { authUser, axios } = useContext(AuthContext);
-  const { onlineUsers, setSelectedGroup, getGroups } = useContext(ChatContext);
+  const { authUser, axios, onlineUsers } = useContext(AuthContext);
+  const { setSelectedGroup, getGroups } = useContext(ChatContext);
   const [media, setMedia] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddMembersModal, setShowAddMembersModal] = useState(false);

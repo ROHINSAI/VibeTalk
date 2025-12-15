@@ -80,6 +80,7 @@ export const ChatProvider = ({ children }) => {
 
   const getMessages = async (userId) => {
     if (!userId) return;
+    setMessages([]); // Clear previous messages
     try {
       const res = await axios.get(`/api/messages/${userId}`);
       setMessages(res.data.messages || []);
@@ -96,6 +97,7 @@ export const ChatProvider = ({ children }) => {
 
   const getGroupMessages = async (groupId) => {
     if (!groupId) return;
+    setMessages([]); // Clear previous messages
     try {
       // client-side guard: if we have the group locally and user is not a member, skip request
       const localGroup = groups.find((g) => String(g._id) === String(groupId));
