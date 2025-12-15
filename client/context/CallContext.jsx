@@ -12,7 +12,7 @@ const ICE_SERVERS = {
 };
 
 export const CallProvider = ({ children }) => {
-  const { socket, authUser } = useContext(AuthContext);
+  const { socket, authUser, axios } = useContext(AuthContext);
 
   const [incomingCall, setIncomingCall] = useState(null);
   const [activeCall, setActiveCall] = useState(null);
@@ -87,8 +87,8 @@ export const CallProvider = ({ children }) => {
       await pc.setLocalDescription(offer);
 
       socket?.emit("callRequest", {
-        to: user._id,
-        from: authUser._id,
+        to: String(user._id),
+        from: String(authUser._id),
         offer,
         callType: type,
       });
@@ -162,7 +162,7 @@ export const CallProvider = ({ children }) => {
   // End active call
   const endCall = () => {
     if (activeCall) {
-      socket?.emit("endCall", { to: activeCall.userId });
+      socket?.emit("endCall", { to: String(activeCall.userId) });
     }
 
     // Stop local stream
@@ -220,16 +220,13 @@ export const CallProvider = ({ children }) => {
   useEffect(() => {
     if (!socket) return;
 
-    const handleIncomingCall = async ({ from, offer, callType }) => {
+    const handleIncomingCall = ({ from, offer, callType }) => {
       try {
-        // Fetch user info
-        const { axios } = require("./AuthContext");
-        // Use authUser context to get user details from users list or fetch
         setIncomingCall({
           from,
           offer,
           callType,
-          userName: "User",
+          userName: "User", // Ideally fetch this or lookup from friends list
           userPic: null,
         });
       } catch (error) {
