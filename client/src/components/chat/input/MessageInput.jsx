@@ -1,5 +1,8 @@
 import assets from "../../../assets/assets";
 import { useRef, useState, useEffect } from "react";
+import TextComposer from "./TextComposer";
+import VoiceRecorder from "./VoiceRecorder";
+import SendButton from "./SendButton";
 
 export default function MessageInput({
   text,
@@ -275,137 +278,32 @@ export default function MessageInput({
   return (
     <form onSubmit={handleSendMessage} className="flex items-center gap-3 p-3">
       <div className="flex-1 flex items-center bg-gray-100/12 px-3 rounded-full">
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          disabled={isRecording}
-          placeholder="Send a message"
-          className="flex-1 text-sm p-3 border-none rounded-lg outline-none text-white placeholder-gray-400 bg-transparent"
+        <TextComposer
+          text={text}
+          setText={setText}
+          fileInputRef={fileInputRef}
+          handleImageChange={handleImageChange}
+          isRecording={isRecording}
         />
-        <input
-          ref={fileInputRef}
-          type="file"
-          id="image"
-          accept="image/png, image/jpeg, image/jpg, image/webp"
-          onChange={handleImageChange}
-          hidden
-        />
-        <label
-          htmlFor="image"
-          className={`${isRecording ? "pointer-events-none opacity-40" : ""}`}
-        >
-          <img
-            src={assets.gallery_icon}
-            alt="Upload"
-            className="w-5 mr-2 cursor-pointer"
-          />
-        </label>
-        {/* visualizer + timer while recording */}
-        {isRecording && (
-          <div className="flex items-center gap-2 ml-2">
-            <canvas
-              ref={canvasRef}
-              width={200}
-              height={48}
-              className="rounded"
-            />
-            <div className="text-xs text-gray-300 monospace ml-1">
-              {`${String(Math.floor(recordingTime / 60)).padStart(
-                2,
-                "0"
-              )}:${String(recordingTime % 60).padStart(2, "0")}`}
-            </div>
-          </div>
-        )}
-        {/* Recording controls and preview */}
-        {!previewUrl && (
-          <div className="flex items-center gap-2">
-            {isRecording ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    isPaused ? resumeRecording() : pauseRecording()
-                  }
-                  className="ml-2 mr-2 text-sm px-2 py-1 rounded bg-yellow-600 text-white"
-                >
-                  {isPaused ? "Resume" : "Pause"}
-                </button>
-                <button
-                  type="button"
-                  onClick={stopRecording}
-                  className="ml-2 mr-2 text-sm px-2 py-1 rounded bg-red-600 text-white"
-                >
-                  Stop
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={startRecording}
-                className="ml-2 mr-2 text-sm px-2 py-1 rounded bg-gray-700 text-white"
-              >
-                🎤
-              </button>
-            )}
-          </div>
-        )}
 
-        {previewUrl && (
-          <div className="flex items-center gap-2">
-            <audio
-              ref={audioRef}
-              src={previewUrl}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onEnded={() => setIsPlaying(false)}
-            />
-            <button
-              type="button"
-              onClick={togglePlayback}
-              className="ml-2 mr-2 text-sm px-2 py-1 rounded bg-gray-700 text-white"
-            >
-              {isPlaying ? "Pause" : "Play"}
-            </button>
-            <button
-              type="button"
-              onClick={sendPreview}
-              className="ml-2 text-sm px-3 py-1 rounded bg-green-600 text-white"
-            >
-              Send
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                // re-record: clear preview and allow starting a new recording
-                discardPreview();
-                // small timeout to ensure state cleared before re-recording
-                setTimeout(() => {
-                  startRecording();
-                }, 120);
-              }}
-              className="ml-2 text-sm px-3 py-1 rounded bg-indigo-600 text-white"
-            >
-              Re-record
-            </button>
-            <button
-              type="button"
-              onClick={discardPreview}
-              className="ml-2 text-sm px-3 py-1 rounded bg-gray-600 text-white"
-            >
-              Discard
-            </button>
-          </div>
-        )}
-      </div>
-      <button type="submit" disabled={isRecording || !!previewUrl}>
-        <img
-          src={assets.send_button}
-          alt="Send"
-          className="w-7 cursor-pointer"
+        <VoiceRecorder
+          isRecording={isRecording}
+          isPaused={isPaused}
+          previewUrl={previewUrl}
+          isPlaying={isPlaying}
+          recordingTime={recordingTime}
+          canvasRef={canvasRef}
+          audioRef={audioRef}
+          startRecording={startRecording}
+          stopRecording={stopRecording}
+          pauseRecording={pauseRecording}
+          resumeRecording={resumeRecording}
+          sendPreview={sendPreview}
+          discardPreview={discardPreview}
+          togglePlayback={togglePlayback}
         />
-      </button>
+      </div>
+      <SendButton disabled={isRecording || !!previewUrl} />
     </form>
   );
 }
