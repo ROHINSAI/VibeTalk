@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { AuthContext } from "./AuthContext";
 
@@ -52,7 +52,7 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const getGroups = async () => {
+  const getGroups = useCallback(async () => {
     try {
       // Ensure token is set before making request
       const token = localStorage.getItem("token");
@@ -63,7 +63,7 @@ export const ChatProvider = ({ children }) => {
     } catch (err) {
       console.error("getGroups error:", err);
     }
-  };
+  }, [axios]);
 
   const getGroupRequests = async () => {
     try {
@@ -78,7 +78,7 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const getMessages = async (userId) => {
+  const getMessages = useCallback(async (userId) => {
     if (!userId) return;
     setMessages([]); // Clear previous messages
     try {
@@ -93,9 +93,9 @@ export const ChatProvider = ({ children }) => {
     } catch (err) {
       console.error("getMessages error:", err);
     }
-  };
+  }, [axios]);
 
-  const getGroupMessages = async (groupId) => {
+  const getGroupMessages = useCallback(async (groupId) => {
     if (!groupId) return;
     setMessages([]); // Clear previous messages
     try {
@@ -152,7 +152,7 @@ export const ChatProvider = ({ children }) => {
         /* ignore */
       }
     }
-  };
+  }, [axios, groups, authUser, getGroups, setSelectedGroup]);
 
   const addStarLocal = (messageId) => {
     setStarredIds((prev) => new Set([...Array.from(prev), messageId]));
