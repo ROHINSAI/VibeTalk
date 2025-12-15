@@ -57,7 +57,7 @@ const RightSidebar = () => {
     <div className="bg-gray-900/50 backdrop-blur-md border-l border-white/10 text-white w-full h-full flex flex-col overflow-hidden">
       
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-y-contain">
         <div className="pt-10 pb-6 flex flex-col items-center gap-3 text-sm font-light px-6">
           <div className="relative">
             <img

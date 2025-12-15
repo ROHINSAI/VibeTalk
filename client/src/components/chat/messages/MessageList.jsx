@@ -1,5 +1,6 @@
 import MessageItem from "./MessageItem";
 import MessageDate from "./MessageDate";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function MessageList({
   messages,
@@ -37,14 +38,26 @@ export default function MessageList({
 
   return (
     <>
+      <AnimatePresence mode="popLayout">
       {messages.map((msg, index) => {
         const dateKey = getDateKey(msg.createdAt);
         const showDate = dateKey !== lastDateKey;
         lastDateKey = dateKey;
 
         return (
-          <div key={`${msg._id || "msg"}-${index}`}>
-            {showDate && <MessageDate dateString={dateKey} />}
+          <motion.div 
+            key={`${msg._id || "msg"}-${index}`}
+            layout
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="w-full"
+          >
+            {showDate && (
+                <div className="opacity-80 hover:opacity-100 transition-opacity">
+                    <MessageDate dateString={dateKey} />
+                </div>
+            )}
             <MessageItem
               latestSentMessageId={latestSentMessageId}
               msg={msg}
@@ -62,9 +75,10 @@ export default function MessageList({
               setInfoMessage={setInfoMessage}
               setIsInfoOpen={setIsInfoOpen}
             />
-          </div>
+          </motion.div>
         );
       })}
+      </AnimatePresence>
     </>
   );
 }

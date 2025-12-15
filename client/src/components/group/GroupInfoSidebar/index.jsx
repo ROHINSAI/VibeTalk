@@ -9,6 +9,8 @@ import ActionsFooter from "./ActionsFooter";
 import EditGroupModal from "../modals/EditGroupModal";
 import AddMembersModal from "../modals/AddMembersModal";
 
+import { motion } from "framer-motion";
+
 export default function GroupInfoSidebar({ group }) {
   const { authUser, axios } = useContext(AuthContext);
   const { onlineUsers, setSelectedGroup, getGroups } = useContext(ChatContext);
@@ -62,11 +64,15 @@ export default function GroupInfoSidebar({ group }) {
   };
 
   return (
-    <div
-      className={`bg-[#8185B2]/10 text-white w-full h-full flex flex-col overflow-hidden max-md:hidden`}
+    <motion.div
+      initial={{ x: "100%", opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: "100%", opacity: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className={`bg-gray-900/50 backdrop-blur-md border-l border-white/10 text-white w-full h-full flex flex-col overflow-hidden max-md:hidden`}
     >
-      {/* Fixed Header Section */}
-      <div className="flex-none">
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-y-contain">
         <GroupHeader
           group={group}
           members={members}
@@ -77,42 +83,43 @@ export default function GroupInfoSidebar({ group }) {
           <div className="px-5 mt-4 flex gap-2">
             <button
               onClick={() => setShowEditModal(true)}
-              className="flex-1 bg-violet-600 hover:bg-violet-700 text-white text-xs py-2 px-3 rounded-lg transition-colors"
+              className="flex-1 bg-violet-600/80 hover:bg-violet-600 text-white text-xs font-medium py-2 px-3 rounded-xl transition-all shadow-lg shadow-violet-900/20"
             >
               Edit Group
             </button>
             <button
               onClick={() => setShowAddMembersModal(true)}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-3 rounded-lg transition-colors"
+              className="flex-1 bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs font-medium py-2 px-3 rounded-xl transition-all shadow-lg shadow-emerald-900/20"
             >
               Add Members
             </button>
           </div>
         )}
 
-        <hr className="border-[#ffffff50] my-4" />
+        <div className="px-5 mt-6 mb-4">
+            <div className="bg-white/5 h-px w-full" />
+        </div>
 
         <div className="px-5 text-xs">
-          <p>Media</p>
+          <p className="text-gray-400 font-medium mb-2 uppercase tracking-wide">Shared Media</p>
           <MediaGrid media={media} />
         </div>
 
-        <hr className="border-[#ffffff50] my-4" />
-      </div>
+        <div className="px-5 mt-6 mb-4">
+            <div className="bg-white/5 h-px w-full" />
+        </div>
 
-      {/* Scrollable Members List Section */}
-      <div className="flex-1 overflow-y-auto min-h-0 px-5 text-xs">
-        <p className="mb-2">Members ({members.length})</p>
-        <MemberList
-          members={members}
-          group={group}
-          onlineUsers={onlineUsersList}
-          authUser={authUser}
-          axios={axios}
-          onUpdate={handleUpdate}
-        />
-        {/* Add padding at bottom to prevent content from being hidden behind a potential footer if it wasn't flex */}
-        <div className="h-4"></div>
+        <div className="px-5 text-xs pb-4">
+          <p className="text-gray-400 font-medium mb-3 uppercase tracking-wide">Members ({members.length})</p>
+          <MemberList
+            members={members}
+            group={group}
+            onlineUsers={onlineUsersList}
+            authUser={authUser}
+            axios={axios}
+            onUpdate={handleUpdate}
+          />
+        </div>
       </div>
 
       {/* Fixed Footer Section */}
@@ -135,6 +142,6 @@ export default function GroupInfoSidebar({ group }) {
         axios={axios}
         onUpdate={handleUpdate}
       />
-    </div>
+    </motion.div>
   );
 }

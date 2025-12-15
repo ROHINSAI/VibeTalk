@@ -79,7 +79,7 @@ function ChatContainer({
     selectedUser && onlineUsers?.includes(String(selectedUser._id));
 
   return selectedUser || selectedGroup ? (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full max-h-full min-h-0 overflow-hidden">
       <ChatHeader
         selectedUser={selectedUser}
         selectedGroup={selectedGroup}
@@ -106,8 +106,12 @@ function ChatContainer({
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-70">
             <div className="text-4xl">👋</div>
-            <p className="text-lg font-medium text-gray-300">No messages yet.</p>
-            <p className="text-sm text-gray-400">Start the conversation by sending a message!</p>
+            <p className="text-lg font-medium text-gray-300">
+              No messages yet.
+            </p>
+            <p className="text-sm text-gray-400">
+              Start the conversation by sending a message!
+            </p>
           </div>
         ) : (
           <MessageList
@@ -178,46 +182,46 @@ function ChatContainer({
 }
 
 const WelcomeView = () => {
-    return (
-        <div className="flex flex-col items-center justify-center h-full w-full bg-gray-900/50 backdrop-blur-sm relative overflow-hidden group">
-             {/* Background Effects */}
-             <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-[100px] animate-pulse" />
-             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
-            
-            <motion.div 
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, type: "spring" }}
-                className="relative z-10 flex flex-col items-center gap-6"
-            >
-                <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-500 to-blue-500 rounded-full blur-xl opacity-40 animate-pulse"></div>
-                    <motion.img 
-                        src={assets.logo_icon} 
-                        alt="logo" 
-                        className="w-24 h-24 relative z-10 drop-shadow-2xl"
-                        animate={{ y: [0, -10, 0] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                </div>
-                
-                <div className="text-center space-y-2">
-                    <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-white tracking-tight">
-                        Welcome to VibeTalk
-                    </h1>
-                    <p className="text-gray-400 text-lg">
-                        Select a chat to start messaging
-                    </p>
-                </div>
+  return (
+    <div className="flex flex-col items-center justify-center h-full w-full bg-gray-900/50 backdrop-blur-sm relative overflow-hidden group">
+      {/* Background Effects */}
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-[100px] animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
 
-                <div className="flex gap-2 mt-4 opacity-50">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100" />
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200" />
-                </div>
-            </motion.div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, type: "spring" }}
+        className="relative z-10 flex flex-col items-center gap-6"
+      >
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-tr from-purple-500 to-blue-500 rounded-full blur-xl opacity-40 animate-pulse"></div>
+          <motion.img
+            src={assets.logo_icon}
+            alt="logo"
+            className="w-24 h-24 relative z-10 drop-shadow-2xl"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
-    );
+
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-white tracking-tight">
+            Welcome to VibeTalk
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Select a chat to start messaging
+          </p>
+        </div>
+
+        <div className="flex gap-2 mt-4 opacity-50">
+          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" />
+          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100" />
+          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200" />
+        </div>
+      </motion.div>
+    </div>
+  );
 };
 
 export default ChatContainer;

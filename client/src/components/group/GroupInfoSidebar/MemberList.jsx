@@ -65,8 +65,8 @@ export default function MemberList({
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      {members.map((member) => {
+    <div className="flex flex-col gap-2 pb-4">
+      {members.map((member, index) => {
         const memberId = member._id || member.userId;
         const isOnline =
           Array.isArray(onlineUsersList) &&
@@ -81,39 +81,46 @@ export default function MemberList({
         return (
           <div
             key={memberId}
-            className="flex items-center gap-2 p-2 rounded hover:bg-white/5 transition-colors"
+            className="group flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/5"
           >
-            <div className="relative">
+            <div className="relative shrink-0">
               <img
                 src={member.ProfilePic || "/avatar_icon.png"}
                 alt={member.fullName}
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-9 h-9 rounded-full object-cover"
               />
               {isOnline && (
-                <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-gray-800" />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-gray-900" />
               )}
             </div>
+            
             <div className="flex-1 min-w-0">
-              <p className="text-white text-sm truncate">
-                {member.fullName} {isSelf && "(You)"}
-              </p>
-              {(isCreator || isAdmin) && (
-                <p className="text-gray-400 text-[10px]">
-                  {isCreator ? "Group Creator" : "Co-Admin"}
+              <div className="flex items-center gap-2">
+                <p className="text-gray-200 text-sm font-medium truncate">
+                    {member.fullName} {isSelf && <span className="text-gray-500 font-normal">(You)</span>}
                 </p>
-              )}
+                {isAdmin && !isCreator && (
+                     <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/20">ADMIN</span>
+                )}
+                {isCreator && (
+                     <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/20">OWNER</span>
+                )}
+              </div>
+              <p className="text-gray-500 text-[10px] truncate">
+                 {member.bio || "No bio available"}
+              </p>
             </div>
 
             {/* Admin Actions */}
             {canManageMembers && !isSelf && !isCreator && (
-              <div className="flex gap-1">
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 {isCurrentUserCreator && (
                   <>
                     {isAdmin ? (
                       <button
                         onClick={() => handleDemote(memberId)}
                         disabled={loadingAction === memberId}
-                        className="text-xs bg-orange-600 hover:bg-orange-700 disabled:bg-gray-500 text-white px-2 py-1 rounded transition-colors"
+                        className="text-[10px] bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 px-2 py-1.5 rounded-lg transition-colors"
                         title="Demote from admin"
                       >
                         {loadingAction === memberId ? "..." : "Demote"}
@@ -122,10 +129,10 @@ export default function MemberList({
                       <button
                         onClick={() => handlePromote(memberId)}
                         disabled={loadingAction === memberId}
-                        className="text-xs bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 text-white px-2 py-1 rounded transition-colors"
+                        className="text-[10px] bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 px-2 py-1.5 rounded-lg transition-colors"
                         title="Promote to admin"
                       >
-                        {loadingAction === memberId ? "..." : "Promote"}
+                        {loadingAction === memberId ? "..." : "Admin"}
                       </button>
                     )}
                   </>
@@ -133,10 +140,10 @@ export default function MemberList({
                 <button
                   onClick={() => handleRemove(memberId)}
                   disabled={loadingAction === memberId}
-                  className="text-xs bg-red-600 hover:bg-red-700 disabled:bg-gray-500 text-white px-2 py-1 rounded transition-colors"
+                  className="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-2 py-1.5 rounded-lg transition-colors"
                   title="Remove member"
                 >
-                  {loadingAction === memberId ? "..." : "Remove"}
+                  {loadingAction === memberId ? "..." : "Kick"}
                 </button>
               </div>
             )}
