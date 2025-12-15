@@ -8,6 +8,7 @@ const ICE_SERVERS = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
   ],
 };
 
@@ -41,28 +42,27 @@ export const CallProvider = ({ children }) => {
 
     pc.ontrack = (event) => {
       console.log("Received remote track:", event.track.kind);
-      if (event.streams && event.streams[0]) {
-        console.log(
-          "Setting remote stream with",
-          event.streams[0].getTracks().length,
-          "tracks"
-        );
-        remoteStreamRef.current = event.streams[0];
-        setRemoteStream(event.streams[0]);
-      } else if (event.track) {
-        // Handle case where stream is not provided
-        const stream = remoteStreamRef.current || new MediaStream();
+      
+      const stream = event.streams[0] || new MediaStream();
+      
+      if (!event.streams[0]) {
         stream.addTrack(event.track);
-        remoteStreamRef.current = stream;
-        setRemoteStream(stream);
       }
+
+      console.log("Remote stream tracks:", stream.getTracks().length);
+      remoteStreamRef.current = stream;
+      
+      // Force state update with new reference to trigger UI
+      setRemoteStream(new MediaStream(stream.getTracks())); 
     };
 
     pc.oniceconnectionstatechange = () => {
+      console.log("ICE Connection State:", pc.iceConnectionState);
       if (
         pc.iceConnectionState === "disconnected" ||
         pc.iceConnectionState === "failed"
       ) {
+        console.warn("ICE connection failed or disconnected");
         endCall();
       }
     };
@@ -312,7 +312,7 @@ export const CallProvider = ({ children }) => {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } else {
           // Queue candidate if remote description not set yet
-          console.log("Queueing ICE candidate (remote description not ready)");
+          console.log("Queueing ICE candidate (remote description not ready). Current state:", pc?.signalingState);
           iceCandidatesQueue.current.push(candidate);
         }
       } catch (error) {
