@@ -1,5 +1,7 @@
 import assets from "../../../assets/assets";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
+import { ChatContext } from "../../../../context/ChatContext.jsx";
+import { AuthContext } from "../../../../context/AuthContext.jsx";
 import TextComposer from "./TextComposer";
 import VoiceRecorder from "./VoiceRecorder";
 import SendButton from "./SendButton";
@@ -253,6 +255,9 @@ export default function MessageInput({
     }
   };
 
+  const { replyMessage, setReplyMessage } = useContext(ChatContext);
+  const { authUser } = useContext(AuthContext);
+
   useEffect(() => {
     return () => {
       try {
@@ -275,8 +280,31 @@ export default function MessageInput({
       }
     };
   }, []);
+
   return (
-    <form onSubmit={handleSendMessage} className="flex items-center gap-3 p-3">
+    <div className="p-3 pt-0">
+        {replyMessage && (
+            <div className="flex items-center justify-between bg-white/50 dark:bg-gray-800/40 backdrop-blur-md p-3 rounded-t-xl border border-b-0 border-gray-200 dark:border-white/10 mb-[-1px] pb-5 relative z-0 mx-4 shadow-sm">
+                <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-1 h-8 bg-purple-500 rounded-full shrink-0"/>
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 truncate w-full tracking-wide">
+                            Replying to {replyMessage.senderId === authUser._id ? "Yourself" : "Message"}
+                        </span>
+                        <span className="text-xs text-gray-600 dark:text-gray-300 truncate max-w-[200px] sm:max-w-xs font-medium">
+                             {replyMessage.text || (replyMessage.audio ? "🎤 Voice Message" : "📷 Image")}
+                        </span>
+                    </div>
+                </div>
+                <button 
+                    onClick={() => setReplyMessage(null)}
+                    className="p-1.5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors group"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+        )}
+        <form onSubmit={handleSendMessage} className="flex items-center gap-3 relative z-10">
       <div className="flex-1 flex items-center bg-gray-100 dark:bg-gray-900/20 border border-transparent dark:border-white/5 px-3 rounded-full transition-colors">
         <TextComposer
           text={text}
@@ -305,5 +333,6 @@ export default function MessageInput({
       </div>
       <SendButton disabled={isRecording || !!previewUrl} />
     </form>
+  </div>
   );
 }

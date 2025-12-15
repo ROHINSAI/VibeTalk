@@ -1,5 +1,7 @@
 import assets from "../../../assets/assets";
 import CustomAudioPlayer from "./CustomAudioPlayer";
+import { useContext, useRef } from "react";
+import { ChatContext } from "../../../../context/ChatContext.jsx";
 
 export default function MessageItem({
   msg,
@@ -34,6 +36,29 @@ export default function MessageItem({
     return sid !== senderIdVal;
   }).length;
 
+  const { setReplyMessage } = useContext(ChatContext);
+  const touchStartRef = useRef(null);
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      touchStartRef.current = e.touches[0].clientX;
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartRef.current !== null) {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchEndX - touchStartRef.current;
+        // Swipe right threshold
+        if (diff > 50) {
+            setReplyMessage(msg);
+            // Optionally vibrate
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+        touchStartRef.current = null;
+    }
+  };
+
   return (
     <div
       data-msgid={`${msg._id || "noid"}-${index}`}
@@ -41,6 +66,8 @@ export default function MessageItem({
       className={`flex items-end gap-2 mb-4 ${
         isSentByMe ? "justify-end" : "justify-start"
       }`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {!isSentByMe && (
         <img
@@ -57,17 +84,52 @@ export default function MessageItem({
       <div
         className={`flex flex-col ${
           isSentByMe ? "items-end" : "items-start"
-        } relative`}
+        } relative max-w-[80%]`}
         onContextMenu={(e) => {
           e.preventDefault();
           setActionMessage(msg);
           setIsActionOpen(true);
         }}
+        onDoubleClick={() => {
+            setReplyMessage(msg);
+        }}
+        title="Double click to reply"
       >
         {selectedGroup && !isSentByMe && senderInfo && (
           <p className="text-xs text-violet-600 dark:text-violet-400 mb-1 font-medium pl-1">
             {senderInfo.fullName}
           </p>
+        )}
+
+        {/* Reply Display */}
+        {msg.replyTo && (
+            <div 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    // MessageItem uses data-msgid `${msg._id}-${index}`
+                    // We target the first instance found (usually the correct one)
+                    const el = document.querySelector(`[data-msgid^="${msg.replyTo._id}"]`);
+                    if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        const bubble = el.querySelector(".p-2\\.5") || el.querySelector(".p-3") || el;
+                        bubble.classList.add("ring-2", "ring-purple-500", "ring-offset-2", "dark:ring-offset-gray-900", "transition-all", "duration-500");
+                        setTimeout(() => bubble.classList.remove("ring-2", "ring-purple-500", "ring-offset-2", "dark:ring-offset-gray-900", "transition-all", "duration-500"), 2000);
+                    } else {
+                        // Fallback: Message might not be loaded if using pagination
+                    }
+                }}
+                className={`mb-1 p-2 rounded-lg text-xs border-l-[3px] cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${
+                isSentByMe 
+                ? "bg-black/5 dark:bg-black/10 border-violet-200 dark:border-violet-400/50 text-white/90" 
+                : "bg-gray-50 dark:bg-gray-800/50 border-purple-500 text-gray-700 dark:text-gray-300"
+            }`}>
+                <p className="font-semibold mb-0.5 opacity-80 text-[10px] uppercase tracking-wide">
+                    {msg.replyTo.senderId === authUser?._id ? "You" : "Replying to"}
+                </p>
+                <p className="line-clamp-1 opacity-90 font-medium">
+                    {msg.replyTo.text || (msg.replyTo.audio ? "🎤 Voice Message" : "📷 Image")}
+                </p>
+            </div>
         )}
 
         {msg.audio ? (

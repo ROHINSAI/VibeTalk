@@ -63,7 +63,7 @@ export const getMessages = async (req, res) => {
           ],
         },
       ],
-    }).sort({ createdAt: 1 });
+    }).sort({ createdAt: 1 }).populate("replyTo", "text senderId audio image");
 
     // Find messages that will be marked seen so we can notify senders
     const messagesToMark = await Message.find({
@@ -125,7 +125,7 @@ export const markMessagesAsSeen = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, replyTo } = req.body;
     // multer places files in req.files when using upload.fields
     const files = req.files || {};
     const senderId = req.userId;
@@ -185,9 +185,12 @@ export const sendMessage = async (req, res) => {
       audio: audioUrl,
       waveform: waveformUrl,
       seen: false,
+      replyTo: replyTo || null,
     });
 
     await newMessage.save();
+    
+    await newMessage.populate("replyTo", "text senderId audio image");
 
     const receiverSocketId = userSocketMap.get && userSocketMap.get(receiverId);
     if (receiverSocketId) {

@@ -14,6 +14,7 @@ export const ChatProvider = ({ children }) => {
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [groupRequests, setGroupRequests] = useState([]);
+  const [replyMessage, setReplyMessage] = useState(null);
 
   const { socket, axios, authUser } = useContext(AuthContext);
   const messageListenerRef = useRef(null);
@@ -156,10 +157,12 @@ export const ChatProvider = ({ children }) => {
             text,
             image,
             audio,
+            replyTo: replyMessage?._id,
           }
         );
         const newMsg = res.data.message;
         setMessages((prev) => [...prev, newMsg]);
+        setReplyMessage(null);
       } catch (err) {
         console.error("sendGroupMessage error:", err);
       }
@@ -169,9 +172,11 @@ export const ChatProvider = ({ children }) => {
           text,
           image,
           audio,
+          replyTo: replyMessage?._id,
         });
         const newMsg = res.data.newMessage;
         setMessages((prev) => [...prev, newMsg]);
+        setReplyMessage(null);
       } catch (err) {
         console.error("sendMessage error:", err);
       }
@@ -386,6 +391,8 @@ export const ChatProvider = ({ children }) => {
     getGroups,
     getGroupRequests,
     getGroupMessages,
+    replyMessage,
+    setReplyMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

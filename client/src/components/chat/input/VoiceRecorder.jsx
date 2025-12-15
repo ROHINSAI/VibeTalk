@@ -75,7 +75,7 @@ export default function VoiceRecorder({
                 whileTap={{ scale: 0.9 }}
                 type="button"
                 onClick={startRecording}
-                className="p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 hover:text-white text-gray-400 transition-all"
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-700/50 hover:bg-gray-300 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white text-gray-600 dark:text-gray-400 transition-all"
               >
                 <Mic size={20} />
               </motion.button>
