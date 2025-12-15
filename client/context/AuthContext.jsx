@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }) => {
     );
 
     checkAuth();
-    
+
     return () => {
       socket?.disconnect();
       axios.interceptors.response.eject(interceptor);

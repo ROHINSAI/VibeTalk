@@ -355,11 +355,14 @@ export const ChatProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    getUsers();
-    getStarredIds();
-    getGroups();
-    getGroupRequests();
-  }, []);
+    // Only fetch data if user is authenticated
+    if (authUser) {
+      getUsers();
+      getStarredIds();
+      getGroups();
+      getGroupRequests();
+    }
+  }, [authUser]);
 
   useEffect(() => {
     subscribeToMessages();
