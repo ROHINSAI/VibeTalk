@@ -32,29 +32,38 @@ export default function ChatHeader({
     <div className="flex items-center py-3 gap-3 mx-4 border-b border-gray-200 dark:border-stone-500">
       {selectedGroup ? (
         <>
-          {selectedGroup.groupPic ? (
-            <img
-              src={selectedGroup.groupPic}
-              className="w-8 h-8 rounded-full object-cover"
-              alt={selectedGroup.name}
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
-              {selectedGroup.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <p className="flex-1 text-lg text-gray-900 dark:text-white flex items-center gap-2">
-            {selectedGroup.name}
-            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-              {selectedGroup.members?.length || 0} members
-            </span>
-          </p>
           <button 
-            className="md:hidden text-gray-600 dark:text-gray-300"
+            className="md:hidden text-gray-600 dark:text-gray-300 mr-2"
             onClick={() => setSelectedGroup(null)}
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
+          
+          <div 
+            onClick={() => setShowGroupInfo(prev => !prev)}
+            className="flex-1 flex items-center gap-3 cursor-pointer p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+          >
+            {selectedGroup.groupPic ? (
+              <img
+                src={selectedGroup.groupPic}
+                className="w-10 h-10 rounded-full object-cover"
+                alt={selectedGroup.name}
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold shrink-0">
+                {selectedGroup.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                {selectedGroup.name}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                {selectedGroup.members?.length || 0} members
+              </p>
+            </div>
+          </div>
+
           <img
             src={assets.help_icon}
             alt="help"
@@ -68,27 +77,43 @@ export default function ChatHeader({
         </>
       ) : (
         <>
-          <img
-            src={selectedUser.ProfilePic || assets.avatar_icon}
-            className="w-8 rounded-full"
-            alt={selectedUser.fullName}
-          />
-          <p className="flex-1 text-lg text-gray-900 dark:text-white flex items-center gap-2">
-            {selectedUser.fullName}
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isOnline ? "bg-green-500" : "bg-gray-400 dark:bg-gray-500"
-              }`}
-            />
-            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-              {isOnline
-                ? "Online"
-                : selectedUser?.lastSeen
-                ? `Last seen ${formatLastSeen(selectedUser.lastSeen)}`
-                : "Offline"}
-            </span>
-          </p>
+          <button 
+            className="md:hidden text-gray-600 dark:text-gray-300 mr-2"
+            onClick={() => setSelectedUser(null)}
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
 
+          <div 
+            onClick={() => setShowRightSidebar(prev => !prev)}
+            className="flex-1 flex items-center gap-3 cursor-pointer p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors overflow-hidden"
+          >
+            <img
+              src={selectedUser.ProfilePic || assets.avatar_icon}
+              className="w-10 h-10 rounded-full object-cover shrink-0"
+              alt={selectedUser.fullName}
+            />
+            <div className="flex flex-col min-w-0">
+              <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight truncate">
+                {selectedUser.fullName}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    isOnline ? "bg-emerald-500" : "bg-gray-400 dark:bg-gray-500"
+                  }`}
+                />
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">
+                  {isOnline
+                    ? "Online"
+                    : selectedUser?.lastSeen
+                    ? `Last seen ${formatLastSeen(selectedUser.lastSeen)}`
+                    : "Offline"}
+                </span>
+              </div>
+            </div>
+          </div>
+ 
           {/* Call buttons for individual chat */}
           <div className="flex items-center gap-3">
              <motion.button
@@ -111,12 +136,6 @@ export default function ChatHeader({
             </motion.button>
           </div>
 
-          <button 
-            className="md:hidden text-gray-600 dark:text-gray-300"
-            onClick={() => setSelectedUser(null)}
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
           <img
             src={assets.help_icon}
             alt="help"

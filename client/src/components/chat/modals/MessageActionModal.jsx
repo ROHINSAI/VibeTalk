@@ -3,6 +3,8 @@ import { AuthContext } from "../../../../context/AuthContext";
 import { ChatContext } from "../../../../context/ChatContext";
 import toast from "react-hot-toast";
 import ActionModal from "../ui/ActionModal";
+import ActionButton from "../ui/ActionButton";
+import { Reply } from "lucide-react";
 import ForwardAction from "../actions/ForwardAction";
 import CopyAction from "../actions/CopyAction";
 import StarAction from "../actions/StarAction";
@@ -165,18 +167,15 @@ export default function MessageActionModal({
 
   return (
     <ActionModal open={open} onClose={onClose} title="Message options">
-        <button 
+        <ActionButton
+            label="Reply"
             onClick={() => {
                 setReplyMessage(message);
                 onClose();
             }}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-700 dark:text-gray-200 w-full mb-1"
-        >
-            <div className="p-2 bg-purple-100 dark:bg-purple-500/20 rounded-lg text-purple-600 dark:text-purple-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
-            </div>
-            <span className="font-medium">Reply</span>
-        </button>
+            icon={Reply}
+            variant="purple"
+        />
       <ForwardAction onForward={handleForwardClick} message={message} />
       <CopyAction onCopy={handleCopy} />
       <StarAction starred={starred} onToggle={handleToggleStar} />

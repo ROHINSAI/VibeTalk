@@ -11,7 +11,7 @@ import AddMembersModal from "../modals/AddMembersModal";
 
 import { motion } from "framer-motion";
 
-export default function GroupInfoSidebar({ group }) {
+export default function GroupInfoSidebar({ group, onClose }) {
   const { authUser, axios } = useContext(AuthContext);
   const { onlineUsers, setSelectedGroup, getGroups } = useContext(ChatContext);
   const [media, setMedia] = useState([]);
@@ -69,7 +69,7 @@ export default function GroupInfoSidebar({ group }) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: "100%", opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={`bg-white/60 dark:bg-gray-900/50 backdrop-blur-md border-l border-gray-200 dark:border-white/10 text-gray-900 dark:text-white w-full h-full flex flex-col overflow-hidden max-md:hidden`}
+      className={`bg-white/60 dark:bg-gray-900/50 backdrop-blur-md border-l border-gray-200 dark:border-white/10 text-gray-900 dark:text-white w-full h-full flex flex-col overflow-hidden`}
     >
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-y-contain">
@@ -77,6 +77,7 @@ export default function GroupInfoSidebar({ group }) {
           group={group}
           members={members}
           onlineUsers={onlineUsersList}
+          onClose={onClose}
         />
 
         {canManageGroup && (

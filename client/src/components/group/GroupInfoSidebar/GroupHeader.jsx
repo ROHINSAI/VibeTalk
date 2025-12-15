@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-export default function GroupHeader({ group, members = [], onlineUsers = [] }) {
+export default function GroupHeader({ group, members = [], onlineUsers = [], onClose }) {
   const onlineUsersList = Array.isArray(onlineUsers) ? onlineUsers : [];
   const onlineMembersCount = members.filter(
     (member) =>
@@ -13,6 +13,14 @@ export default function GroupHeader({ group, members = [], onlineUsers = [] }) {
 
   return (
     <div className="pt-10 pb-4 flex flex-col items-center gap-3 text-xs font-light mx-auto relative z-10 w-full">
+      {/* Back Button for Mobile */}
+      <button 
+        onClick={onClose}
+        className="md:hidden absolute left-4 top-4 p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-500 dark:text-gray-400 z-50"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

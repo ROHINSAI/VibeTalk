@@ -17,17 +17,17 @@ export default function ActionModal({ open, onClose, title, children }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="bg-gray-900/90 border border-white/10 backdrop-blur-xl rounded-2xl w-11/12 max-w-sm p-5 shadow-2xl relative overflow-hidden"
+            className="bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-white/10 backdrop-blur-xl rounded-2xl w-11/12 max-w-sm p-5 shadow-2xl relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
              {/* Background decorative blob */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-[50px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-[50px] pointer-events-none" />
 
             <div className="flex items-center justify-between mb-4 relative z-10">
-              <h3 className="text-white font-semibold text-lg tracking-wide">{title || "Options"}</h3>
+              <h3 className="text-gray-900 dark:text-white font-semibold text-lg tracking-wide">{title || "Options"}</h3>
               <button 
                 onClick={onClose} 
-                className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"
               >
                 ×
               </button>

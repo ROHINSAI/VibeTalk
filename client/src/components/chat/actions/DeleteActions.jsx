@@ -1,5 +1,6 @@
 import React from "react";
 import ActionButton from "../ui/ActionButton";
+import { Trash2 } from "lucide-react";
 
 export default function DeleteActions({
   onDeleteForMe,
@@ -11,13 +12,15 @@ export default function DeleteActions({
       <ActionButton
         label="Delete for me"
         onClick={onDeleteForMe}
-        className="bg-gray-800 text-white"
+        icon={Trash2}
+        variant="default"
       />
       {canDeleteEveryone && (
         <ActionButton
           label="Delete for everyone"
           onClick={onDeleteForEveryone}
-          className="bg-red-600 text-white"
+          icon={Trash2}
+          variant="danger"
         />
       )}
     </>

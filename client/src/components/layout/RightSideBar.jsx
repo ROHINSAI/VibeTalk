@@ -3,7 +3,7 @@ import React, { useContext, useMemo } from "react";
 import { ChatContext } from "../../../context/ChatContext";
 import { AuthContext } from "../../../context/AuthContext";
 
-const RightSidebar = () => {
+const RightSidebar = ({ onClose }) => {
   const { selectedUser, messages } = useContext(ChatContext);
   const {
     logout,
@@ -58,7 +58,15 @@ const RightSidebar = () => {
       
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-y-contain">
-        <div className="pt-10 pb-6 flex flex-col items-center gap-3 text-sm font-light px-6">
+        <div className="pt-10 pb-6 flex flex-col items-center gap-3 text-sm font-light px-6 relative">
+          
+          {/* Back Button for Mobile */}
+          <button 
+            onClick={onClose}
+            className="md:hidden absolute left-4 top-4 p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-500 dark:text-gray-400"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
           <div className="relative">
             <img
               src={selectedUser?.ProfilePic || assets.avatar_icon}

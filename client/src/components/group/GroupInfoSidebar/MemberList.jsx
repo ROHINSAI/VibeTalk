@@ -113,7 +113,7 @@ export default function MemberList({
 
             {/* Admin Actions */}
             {canManageMembers && !isSelf && !isCreator && (
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 max-md:opacity-100 transition-opacity">
                 {isCurrentUserCreator && (
                   <>
                     {isAdmin ? (
