@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import assets from "../assets/assets";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { ChatContext } from "../../context/ChatContext";
@@ -103,7 +104,7 @@ function ProfilePage() {
                 className="text-xs bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg transition-colors border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none"
                 onClick={() => {
                     navigator.clipboard.writeText(authUser?.userId);
-                    // could add toast here
+                    toast.success("User ID copied to clipboard!");
                 }}
             >
                 Copy

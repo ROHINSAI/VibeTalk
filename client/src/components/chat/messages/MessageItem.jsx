@@ -1,4 +1,5 @@
 import assets from "../../../assets/assets";
+import CustomAudioPlayer from "./CustomAudioPlayer";
 
 export default function MessageItem({
   msg,
@@ -70,15 +71,14 @@ export default function MessageItem({
         )}
 
         {msg.audio ? (
-          <div className="p-2 bg-transparent">
-            {msg.waveform && (
-              <img
-                src={msg.waveform}
-                alt="waveform"
-                className="mb-2 max-w-[230px] rounded"
-              />
-            )}
-            <audio controls src={msg.audio} className="max-w-[230px]" />
+          <div 
+            className={`p-3 rounded-2xl shadow-sm ${
+              isSentByMe
+                ? "bg-violet-600 dark:bg-violet-500/30 text-white rounded-br-sm"
+                : "bg-white dark:bg-[#4e4a7c] text-gray-900 dark:text-white border border-gray-100 dark:border-transparent rounded-bl-sm"
+            }`}
+          >
+            <CustomAudioPlayer src={msg.audio} isSentByMe={isSentByMe} />
           </div>
         ) : msg.image ? (
           <img
