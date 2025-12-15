@@ -40,9 +40,21 @@ export const CallProvider = ({ children }) => {
     };
 
     pc.ontrack = (event) => {
+      console.log("Received remote track:", event.track.kind);
       if (event.streams && event.streams[0]) {
+        console.log(
+          "Setting remote stream with",
+          event.streams[0].getTracks().length,
+          "tracks"
+        );
         remoteStreamRef.current = event.streams[0];
         setRemoteStream(event.streams[0]);
+      } else if (event.track) {
+        // Handle case where stream is not provided
+        const stream = remoteStreamRef.current || new MediaStream();
+        stream.addTrack(event.track);
+        remoteStreamRef.current = stream;
+        setRemoteStream(stream);
       }
     };
 
@@ -75,11 +87,16 @@ export const CallProvider = ({ children }) => {
         video: type === "video",
       });
 
+      console.log(
+        "Got local stream with tracks:",
+        stream.getTracks().map((t) => t.kind)
+      );
       localStreamRef.current = stream;
       setLocalStream(stream);
 
       const pc = createPeerConnection();
       stream.getTracks().forEach((track) => {
+        console.log("Adding local track to peer connection:", track.kind);
         pc.addTrack(track, stream);
       });
 
@@ -117,22 +134,40 @@ export const CallProvider = ({ children }) => {
         video: incomingCall.callType === "video",
       });
 
+      console.log(
+        "Got local stream (callee) with tracks:",
+        stream.getTracks().map((t) => t.kind)
+      );
       localStreamRef.current = stream;
       setLocalStream(stream);
 
       const pc = createPeerConnection();
       stream.getTracks().forEach((track) => {
+        console.log(
+          "Adding local track (callee) to peer connection:",
+          track.kind
+        );
         pc.addTrack(track, stream);
       });
 
+      console.log("Setting remote description from offer");
       await pc.setRemoteDescription(
         new RTCSessionDescription(incomingCall.offer)
       );
 
-      // Process queued ICE candidates
+      // Process queued ICE candidates after remote description is set
+      console.log(
+        "Processing",
+        iceCandidatesQueue.current.length,
+        "queued ICE candidates (callee)"
+      );
       while (iceCandidatesQueue.current.length > 0) {
         const candidate = iceCandidatesQueue.current.shift();
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.warn("Failed to add ICE candidate:", err);
+        }
       }
 
       const answer = await pc.createAnswer();
@@ -239,12 +274,22 @@ export const CallProvider = ({ children }) => {
         setIsRinging(false);
         const pc = peerConnectionRef.current;
         if (pc) {
+          console.log("Setting remote description from answer");
           await pc.setRemoteDescription(new RTCSessionDescription(answer));
 
-          // Process queued ICE candidates
+          // Process queued ICE candidates after remote description is set
+          console.log(
+            "Processing",
+            iceCandidatesQueue.current.length,
+            "queued ICE candidates"
+          );
           while (iceCandidatesQueue.current.length > 0) {
             const candidate = iceCandidatesQueue.current.shift();
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (err) {
+              console.warn("Failed to add ICE candidate:", err);
+            }
           }
         }
       } catch (error) {
@@ -262,10 +307,12 @@ export const CallProvider = ({ children }) => {
     const handleIceCandidate = async ({ candidate }) => {
       try {
         const pc = peerConnectionRef.current;
-        if (pc && pc.remoteDescription) {
+        if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+          console.log("Adding ICE candidate immediately");
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } else {
           // Queue candidate if remote description not set yet
+          console.log("Queueing ICE candidate (remote description not ready)");
           iceCandidatesQueue.current.push(candidate);
         }
       } catch (error) {
