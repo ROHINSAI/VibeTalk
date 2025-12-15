@@ -32,7 +32,7 @@ export default function TextComposer({
         <img
           src={assets.gallery_icon}
           alt="Upload"
-          className="w-5 mr-2 cursor-pointer"
+          className="w-5 mr-2 cursor-pointer invert dark:invert-0"
         />
       </label>
     </>
