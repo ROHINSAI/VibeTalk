@@ -352,6 +352,30 @@ export const CallProvider = ({ children }) => {
     };
   }, [socket, authUser]);
 
+  useEffect(() => {
+    if (!activeCall) return;
+
+    const interval = setInterval(() => {
+      const pc = peerConnectionRef.current;
+      if (!pc) return;
+
+      console.log("--- CALL DEBUG ---");
+      console.log("ICE State:", pc.iceConnectionState);
+      console.log("Signaling State:", pc.signalingState);
+      console.log("Connection State:", pc.connectionState);
+
+      if (remoteStreamRef.current) {
+        remoteStreamRef.current.getTracks().forEach((t) => {
+          console.log(
+            `Track ${t.kind}: enabled=${t.enabled}, muted=${t.muted}, state=${t.readyState}, id=${t.id}`
+          );
+        });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [activeCall]);
+
   const value = {
     incomingCall,
     activeCall,

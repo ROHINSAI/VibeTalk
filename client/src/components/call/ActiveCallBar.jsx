@@ -114,6 +114,10 @@ export default function ActiveCallBar() {
               ref={remoteVideoRef}
               autoPlay
               playsInline
+              onClick={() => {
+                 console.log("User tapped video to play");
+                 remoteVideoRef.current?.play().catch(console.error);
+              }}
               className="w-full h-full object-cover"
               onLoadedMetadata={() => console.log("Remote video loaded")}
               onPlay={() => console.log("Remote video playing")}
