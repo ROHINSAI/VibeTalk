@@ -310,7 +310,8 @@ export const sendGroupMessage = async (req, res) => {
       image: image || "",
       audio: audioUrl || "",
       waveform: waveformUrl || "",
-      seenBy: [senderId],
+      // do not add sender to seenBy; sender shouldn't be counted as having "seen" their own message
+      seenBy: [],
     });
 
     await message.save();
@@ -407,7 +408,12 @@ export const getMessageInfo = async (req, res) => {
       return res.status(404).json({ message: "Message not found" });
     }
 
-    res.status(200).json({ seenBy: message.seenBy || [] });
+    // Ensure the sender is not included in the seenBy list returned to clients
+    const filteredSeenBy = (message.seenBy || []).filter(
+      (u) => String(u._id) !== String(message.senderId)
+    );
+
+    res.status(200).json({ seenBy: filteredSeenBy });
   } catch (error) {
     console.error("Error in getMessageInfo:", error);
     res.status(500).json({ message: "Server error" });

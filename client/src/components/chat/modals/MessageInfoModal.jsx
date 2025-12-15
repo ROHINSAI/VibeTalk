@@ -34,7 +34,12 @@ export default function MessageInfoModal({ open, onClose, message }) {
 
   if (!open || !message || !selectedGroup) return null;
 
-  const totalMembers = selectedGroup.members?.length || 0;
+  // Show count of other members who could have seen the message (exclude the sender)
+  const rawMembersCount = selectedGroup.members?.length || 0;
+  const totalMembers = Math.max(
+    0,
+    rawMembersCount - 1 // exclude sender themselves
+  );
   const seenCount = seenByUsers.length;
 
   return (

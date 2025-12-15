@@ -9,6 +9,7 @@ export default function MessageItem({
   starredIds,
   recentlySeen,
   lastSeenSentMessage,
+  latestSentMessageId,
   axios,
   removeStarLocal,
   setActionMessage,
@@ -21,6 +22,16 @@ export default function MessageItem({
     : msg.senderId === authUser?._id;
 
   const senderInfo = selectedGroup && msg.senderId;
+
+  // Compute seen count for group messages, excluding the sender themselves
+  const rawSeenArray = Array.isArray(msg.seenBy) ? msg.seenBy : [];
+  const senderIdVal = selectedGroup
+    ? String(msg.senderId?._id ?? msg.senderId)
+    : null;
+  const seenCountForDisplay = rawSeenArray.filter((s) => {
+    const sid = String(s?._id ?? s);
+    return sid !== senderIdVal;
+  }).length;
 
   return (
     <div
@@ -103,17 +114,20 @@ export default function MessageItem({
 
         {isSentByMe &&
           (selectedGroup ? (
-            <button
-              className="text-xs text-green-400 mt-1 hover:underline"
-              onClick={(e) => {
-                e.stopPropagation();
-                setInfoMessage(msg);
-                setIsInfoOpen(true);
-              }}
-              title="View seen details"
-            >
-              Seen by {Array.isArray(msg.seenBy) ? msg.seenBy.length : 0}
-            </button>
+            // Only show seen info for the latest message sent by me in the group
+            msg._id === latestSentMessageId ? (
+              <button
+                className="text-xs text-green-400 mt-1 hover:underline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setInfoMessage(msg);
+                  setIsInfoOpen(true);
+                }}
+                title="View seen details"
+              >
+                Seen by {seenCountForDisplay}
+              </button>
+            ) : null
           ) : (
             lastSeenSentMessage &&
             msg._id === lastSeenSentMessage._id && (

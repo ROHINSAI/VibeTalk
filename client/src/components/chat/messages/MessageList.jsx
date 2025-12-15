@@ -24,6 +24,17 @@ export default function MessageList({
 
   let lastDateKey = null;
 
+  // compute latest message sent by the current auth user (most recent in list)
+  const latestSentMessageId = (() => {
+    if (!messages || messages.length === 0) return null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      const senderId = m.senderId?._id ?? m.senderId;
+      if (String(senderId) === String(authUser?._id)) return m._id;
+    }
+    return null;
+  })();
+
   return (
     <>
       {messages.map((msg, index) => {
@@ -35,6 +46,7 @@ export default function MessageList({
           <div key={`${msg._id || "msg"}-${index}`}>
             {showDate && <MessageDate dateString={dateKey} />}
             <MessageItem
+              latestSentMessageId={latestSentMessageId}
               msg={msg}
               index={index}
               selectedGroup={selectedGroup}
