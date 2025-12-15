@@ -12,10 +12,10 @@ function Home() {
   const [showGroupInfo, setShowGroupInfo] = useState(false);
 
   return (
-    <div className="w-screen h-screen overflow-hidden flex items-center justify-center bg-black/20 backdrop-blur-sm">
+    <div className="w-screen h-screen overflow-hidden flex items-center justify-center bg-gray-100/50 dark:bg-black/20 backdrop-blur-sm">
       <div className="h-[95%] w-[95%] sm:h-[90%] sm:w-[90%] xl:max-w-[1600px] border-none rounded-2xl box-border shadow-2xl relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-xl rounded-2xl border border-white/10" />
-
+        <div className="absolute inset-0 bg-white/80 dark:bg-gradient-to-br dark:from-gray-900/90 dark:to-black/90 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-white/10 shadow-inner" />
+        
         <motion.div
           layout
           transition={{ duration: 0.4, type: "spring", bounce: 0.1 }}

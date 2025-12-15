@@ -64,7 +64,7 @@ export default function MessageItem({
         }}
       >
         {selectedGroup && !isSentByMe && senderInfo && (
-          <p className="text-xs text-violet-400 mb-1 font-medium">
+          <p className="text-xs text-violet-600 dark:text-violet-400 mb-1 font-medium pl-1">
             {senderInfo.fullName}
           </p>
         )}
@@ -88,10 +88,10 @@ export default function MessageItem({
           />
         ) : (
           <p
-            className={`p-2 max-w-[200px] md:text-sm font-light rounded-lg break-words ${
+            className={`p-2.5 max-w-[200px] md:text-sm font-normal rounded-2xl break-words shadow-sm ${
               isSentByMe
-                ? "bg-violet-500/30 text-white rounded-br-none"
-                : "bg-[#4e4a7c] text-white rounded-bl-none"
+                ? "bg-violet-600 dark:bg-violet-500/30 text-white rounded-br-sm"
+                : "bg-white dark:bg-[#4e4a7c] text-gray-900 dark:text-white border border-gray-100 dark:border-transparent rounded-bl-sm"
             }`}
           >
             {msg.text}

@@ -81,7 +81,7 @@ export default function MemberList({
         return (
           <div
             key={memberId}
-            className="group flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/5"
+            className="group flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-all border border-transparent hover:border-gray-200 dark:hover:border-white/5"
           >
             <div className="relative shrink-0">
               <img
@@ -90,14 +90,14 @@ export default function MemberList({
                 className="w-9 h-9 rounded-full object-cover"
               />
               {isOnline && (
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-gray-900" />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900" />
               )}
             </div>
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-gray-200 text-sm font-medium truncate">
-                    {member.fullName} {isSelf && <span className="text-gray-500 font-normal">(You)</span>}
+                <p className="text-gray-900 dark:text-gray-200 text-sm font-medium truncate">
+                    {member.fullName} {isSelf && <span className="text-gray-500 dark:text-gray-500 font-normal">(You)</span>}
                 </p>
                 {isAdmin && !isCreator && (
                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/20">ADMIN</span>

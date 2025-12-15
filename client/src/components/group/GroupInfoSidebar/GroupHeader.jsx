@@ -23,10 +23,10 @@ export default function GroupHeader({ group, members = [], onlineUsers = [] }) {
           <img
             src={group.groupPic}
             alt={group.name}
-            className="w-24 h-24 rounded-full object-cover border-4 border-gray-800 shadow-xl"
+            className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-xl"
           />
         ) : (
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center border-4 border-gray-800 shadow-xl">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center border-4 border-white dark:border-gray-800 shadow-xl">
             <span className="text-white text-4xl font-bold">
               {group.name?.[0]?.toUpperCase() || "G"}
             </span>
@@ -35,26 +35,26 @@ export default function GroupHeader({ group, members = [], onlineUsers = [] }) {
       </motion.div>
 
       <div className="text-center space-y-1">
-        <h1 className="text-xl font-bold tracking-wide px-6">
+        <h1 className="text-xl font-bold tracking-wide px-6 text-gray-900 dark:text-white">
           {group.name}
         </h1>
         {group.description && (
-          <p className="text-gray-400 text-xs max-w-[200px] mx-auto leading-relaxed px-4 line-clamp-2">
+          <p className="text-gray-600 dark:text-gray-400 text-xs max-w-[200px] mx-auto leading-relaxed px-4 line-clamp-2">
             {group.description}
           </p>
         )}
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 mt-2 flex gap-6 backdrop-blur-sm">
+      <div className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 mt-2 flex gap-6 backdrop-blur-sm shadow-sm dark:shadow-none">
         <div className="text-center">
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-0.5">Members</p>
-          <p className="text-lg font-bold tracking-wider text-violet-400">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5">Members</p>
+          <p className="text-lg font-bold tracking-wider text-violet-600 dark:text-violet-400">
             {members.length}
           </p>
         </div>
-        <div className="text-center border-l border-white/10 pl-6">
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-0.5">Online</p>
-          <p className="text-lg font-bold tracking-wider text-emerald-400">
+        <div className="text-center border-l border-gray-300 dark:border-white/10 pl-6">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5">Online</p>
+          <p className="text-lg font-bold tracking-wider text-emerald-600 dark:text-emerald-400">
             {onlineMembersCount}
           </p>
         </div>

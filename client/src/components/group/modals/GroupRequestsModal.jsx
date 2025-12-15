@@ -102,13 +102,13 @@ export default function GroupRequestsModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#282142] border border-gray-600 rounded-xl p-6 w-[90%] max-w-md max-h-[80vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-[#282142] border border-gray-200 dark:border-gray-600 rounded-xl p-6 w-[90%] max-w-md max-h-[80vh] overflow-y-auto shadow-2xl">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             Group Invitations
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
             ✕
           </button>
         </div>
@@ -118,7 +118,7 @@ export default function GroupRequestsModal({
             {requests.map((request) => (
               <div
                 key={request._id}
-                className="bg-[#1a1625] border border-gray-600 rounded-lg p-4"
+                className="bg-gray-50 dark:bg-[#1a1625] border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-sm dark:shadow-none"
               >
                 <div className="flex items-start gap-3 mb-3">
                   <img
@@ -127,19 +127,19 @@ export default function GroupRequestsModal({
                     className="w-12 h-12 rounded-full"
                   />
                   <div className="flex-1">
-                    <p className="text-white font-semibold">
+                    <p className="text-gray-900 dark:text-white font-semibold">
                       {request.group?.name}
                     </p>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Invited by {request.sender?.fullName}
                     </p>
                     {request.group?.description && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                         {request.group.description}
                       </p>
                     )}
                     {request.hasNonFriendMembers && (
-                      <p className="text-xs text-yellow-500 mt-2 flex items-center gap-1">
+                      <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-2 flex items-center gap-1">
                         <span>⚠️</span> Contains non-friends
                       </p>
                     )}

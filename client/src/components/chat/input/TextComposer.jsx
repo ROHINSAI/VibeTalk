@@ -15,7 +15,7 @@ export default function TextComposer({
         onChange={(e) => setText(e.target.value)}
         disabled={isRecording}
         placeholder="Send a message"
-        className="flex-1 text-sm p-3 border-none rounded-lg outline-none text-white placeholder-gray-400 bg-transparent"
+        className="flex-1 text-sm p-3 border-none rounded-lg outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 bg-transparent"
       />
       <input
         ref={fileInputRef}

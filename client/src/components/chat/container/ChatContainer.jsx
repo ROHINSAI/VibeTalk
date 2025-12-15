@@ -183,7 +183,7 @@ function ChatContainer({
 
 const WelcomeView = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full bg-gray-900/50 backdrop-blur-sm relative overflow-hidden group">
+    <div className="flex flex-col items-center justify-center h-full w-full bg-white/60 dark:bg-gray-900/50 backdrop-blur-sm relative overflow-hidden group">
       {/* Background Effects */}
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-[100px] animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
@@ -206,10 +206,10 @@ const WelcomeView = () => {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-white tracking-tight">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-800 via-purple-600 to-gray-800 dark:from-white dark:via-purple-200 dark:to-white tracking-tight">
             Welcome to VibeTalk
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
             Select a chat to start messaging
           </p>
         </div>

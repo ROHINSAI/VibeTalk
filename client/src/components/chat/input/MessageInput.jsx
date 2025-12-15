@@ -277,7 +277,7 @@ export default function MessageInput({
   }, []);
   return (
     <form onSubmit={handleSendMessage} className="flex items-center gap-3 p-3">
-      <div className="flex-1 flex items-center bg-gray-100/12 px-3 rounded-full">
+      <div className="flex-1 flex items-center bg-gray-100 dark:bg-gray-900/20 border border-transparent dark:border-white/5 px-3 rounded-full transition-colors">
         <TextComposer
           text={text}
           setText={setText}

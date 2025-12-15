@@ -29,7 +29,7 @@ export default function ChatHeader({
   };
 
   return (
-    <div className="flex items-center py-3 gap-3 mx-4 border-b border-stone-500">
+    <div className="flex items-center py-3 gap-3 mx-4 border-b border-gray-200 dark:border-stone-500">
       {selectedGroup ? (
         <>
           {selectedGroup.groupPic ? (
@@ -43,18 +43,18 @@ export default function ChatHeader({
               {selectedGroup.name.charAt(0).toUpperCase()}
             </div>
           )}
-          <p className="flex-1 text-lg text-white flex items-center gap-2">
+          <p className="flex-1 text-lg text-gray-900 dark:text-white flex items-center gap-2">
             {selectedGroup.name}
-            <span className="text-xs text-gray-400 ml-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
               {selectedGroup.members?.length || 0} members
             </span>
           </p>
-          <img
-            src={assets.arrow_icon}
-            alt="Arrow Icon"
-            className="md:hidden w-7 cursor-pointer"
+          <button 
+            className="md:hidden text-gray-600 dark:text-gray-300"
             onClick={() => setSelectedGroup(null)}
-          />
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
           <img
             src={assets.help_icon}
             alt="help"
@@ -73,14 +73,14 @@ export default function ChatHeader({
             className="w-8 rounded-full"
             alt={selectedUser.fullName}
           />
-          <p className="flex-1 text-lg text-white flex items-center gap-2">
+          <p className="flex-1 text-lg text-gray-900 dark:text-white flex items-center gap-2">
             {selectedUser.fullName}
             <span
               className={`w-2 h-2 rounded-full ${
-                isOnline ? "bg-green-600" : "bg-gray-500"
+                isOnline ? "bg-green-500" : "bg-gray-400 dark:bg-gray-500"
               }`}
             />
-            <span className="text-xs text-gray-400 ml-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
               {isOnline
                 ? "Online"
                 : selectedUser?.lastSeen
@@ -111,12 +111,12 @@ export default function ChatHeader({
             </motion.button>
           </div>
 
-          <img
-            src={assets.arrow_icon}
-            alt="Arrow Icon"
-            className="md:hidden w-7 cursor-pointer"
+          <button 
+            className="md:hidden text-gray-600 dark:text-gray-300"
             onClick={() => setSelectedUser(null)}
-          />
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
           <img
             src={assets.help_icon}
             alt="help"

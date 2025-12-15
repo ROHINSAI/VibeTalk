@@ -69,10 +69,10 @@ export default function GroupInfoSidebar({ group }) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: "100%", opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={`bg-gray-900/50 backdrop-blur-md border-l border-white/10 text-white w-full h-full flex flex-col overflow-hidden max-md:hidden`}
+      className={`bg-white/60 dark:bg-gray-900/50 backdrop-blur-md border-l border-gray-200 dark:border-white/10 text-gray-900 dark:text-white w-full h-full flex flex-col overflow-hidden max-md:hidden`}
     >
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-y-contain">
+      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-y-contain">
         <GroupHeader
           group={group}
           members={members}
@@ -97,20 +97,20 @@ export default function GroupInfoSidebar({ group }) {
         )}
 
         <div className="px-5 mt-6 mb-4">
-            <div className="bg-white/5 h-px w-full" />
+            <div className="bg-gray-200 dark:bg-white/5 h-px w-full" />
         </div>
 
         <div className="px-5 text-xs">
-          <p className="text-gray-400 font-medium mb-2 uppercase tracking-wide">Shared Media</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium mb-2 uppercase tracking-wide">Shared Media</p>
           <MediaGrid media={media} />
         </div>
 
         <div className="px-5 mt-6 mb-4">
-            <div className="bg-white/5 h-px w-full" />
+            <div className="bg-gray-200 dark:bg-white/5 h-px w-full" />
         </div>
 
         <div className="px-5 text-xs pb-4">
-          <p className="text-gray-400 font-medium mb-3 uppercase tracking-wide">Members ({members.length})</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium mb-3 uppercase tracking-wide">Members ({members.length})</p>
           <MemberList
             members={members}
             group={group}

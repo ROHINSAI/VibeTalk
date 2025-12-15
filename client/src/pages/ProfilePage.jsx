@@ -68,39 +68,39 @@ function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-6 bg-fixed">
+    <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-black flex items-center justify-center p-6 bg-fixed transition-colors duration-300">
         
       {/* Background Decorative Elements */}
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 dark:bg-blue-600/20 rounded-full blur-[120px]" />
       </div>
 
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-4xl bg-gray-900/40 backdrop-blur-3xl border border-white/10 flex items-start justify-between max-md:flex-col-reverse rounded-3xl shadow-2xl overflow-hidden relative z-10"
+        className="w-full max-w-4xl bg-white/80 dark:bg-gray-900/40 backdrop-blur-3xl border border-gray-200/50 dark:border-white/10 flex items-start justify-between max-md:flex-col-reverse rounded-3xl shadow-xl dark:shadow-2xl overflow-hidden relative z-10"
       >
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 p-10 flex-1 w-full"
         >
           <div className="space-y-1">
-            <h3 className="text-3xl font-bold text-white tracking-tight">Profile Settings</h3>
-            <p className="text-gray-400 text-sm">Update your personal information</p>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Profile Settings</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Update your personal information</p>
           </div>
 
-          <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:border-white/10 transition-colors">
+          <div className="bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:border-purple-500/20 dark:hover:border-white/10 transition-colors">
             <div>
-                <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-1">Your User ID</p>
-                <p className="text-xl font-mono font-bold tracking-wider text-purple-300">
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-widest font-semibold mb-1">Your User ID</p>
+                <p className="text-xl font-mono font-bold tracking-wider text-purple-600 dark:text-purple-300">
                 {authUser?.userId || "N/A"}
                 </p>
             </div>
             <button 
                 type="button"
-                className="text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-1.5 rounded-lg transition-colors border border-white/5"
+                className="text-xs bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg transition-colors border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none"
                 onClick={() => {
                     navigator.clipboard.writeText(authUser?.userId);
                     // could add toast here
@@ -123,42 +123,42 @@ function ProfilePage() {
                     <img
                         src={previewUrl || assets.avatar_icon}
                         alt="Avatar"
-                        className={`w-24 h-24 rounded-full object-cover border-4 border-gray-800 shadow-xl group-hover:border-purple-500/50 transition-all duration-300 ${previewUrl ? "" : "opacity-80"}`}
+                        className={`w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-xl group-hover:border-purple-500/50 transition-all duration-300 ${previewUrl ? "" : "opacity-80"}`}
                     />
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
                         <span className="text-white text-xs font-medium">Change</span>
                     </div>
                     {/* Online Status Indicator (Decoration) */}
-                    <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-4 border-gray-900 rounded-full" />
+                    <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-4 border-white dark:border-gray-900 rounded-full" />
                 </label>
             </div>
             <div className="flex-1">
-                 <p className="text-white font-medium text-lg">Profile Photo</p>
+                 <p className="text-gray-900 dark:text-white font-medium text-lg">Profile Photo</p>
                  <p className="text-gray-500 text-sm">Click to upload a new avatar</p>
             </div>
           </div>
 
           <div className="space-y-4">
              <div className="space-y-2">
-                <label className="text-sm text-gray-300 font-medium ml-1">Full Name</label>
+                <label className="text-sm text-gray-700 dark:text-gray-300 font-medium ml-1">Full Name</label>
                 <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. John Doe"
                     required
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 focus:bg-black/40 transition-all placeholder-gray-600"
+                    className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500/50 focus:bg-white dark:focus:bg-black/40 transition-all placeholder-gray-400 dark:placeholder-gray-600"
                 />
              </div>
 
              <div className="space-y-2">
-                <label className="text-sm text-gray-300 font-medium ml-1">Bio</label>
+                <label className="text-sm text-gray-700 dark:text-gray-300 font-medium ml-1">Bio</label>
                 <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     rows={3}
                     placeholder="Tell us about yourself..."
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 focus:bg-black/40 transition-all placeholder-gray-600 resize-none"
+                    className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500/50 focus:bg-white dark:focus:bg-black/40 transition-all placeholder-gray-400 dark:placeholder-gray-600 resize-none"
                 />
              </div>
           </div>
@@ -173,20 +173,20 @@ function ProfilePage() {
           </motion.button>
         </form>
 
-        <div className="p-10 bg-black/20 md:w-80 md:border-l border-white/5 flex flex-col gap-4 h-full shrink-0">
-           <h4 className="text-white font-semibold mb-2">Account Actions</h4>
+        <div className="p-10 bg-gray-50 dark:bg-black/20 md:w-80 md:border-l border-gray-200/50 dark:border-white/5 flex flex-col gap-4 h-full shrink-0">
+           <h4 className="text-gray-900 dark:text-white font-semibold mb-2">Account Actions</h4>
            
            <motion.button
-            whileHover={{ x: 5, backgroundColor: "rgba(255, 255, 255, 0.08)" }}
+            whileHover={{ x: 5, backgroundColor: "rgba(100, 100, 100, 0.1)" }}
             onClick={() => setShowBlockedModal(true)}
-            className="w-full text-left bg-white/5 text-gray-300 px-4 py-3 rounded-xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-between group"
+            className="w-full text-left bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 transition-all flex items-center justify-between group shadow-sm dark:shadow-none"
           >
             Blocked Users
-            <span className="text-gray-500 group-hover:text-white transition-colors">→</span>
+            <span className="text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-white transition-colors">→</span>
           </motion.button>
           
           <motion.button
-            whileHover={{ x: 5, backgroundColor: "rgba(255, 255, 255, 0.08)" }}
+            whileHover={{ x: 5, backgroundColor: "rgba(100, 100, 100, 0.1)" }}
             onClick={async () => {
               try {
                 const res = await axios.get("/api/messages/starred");
@@ -196,10 +196,10 @@ function ProfilePage() {
                 console.error("fetch starred failed:", err);
               }
             }}
-            className="w-full text-left bg-white/5 text-gray-300 px-4 py-3 rounded-xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-between group"
+            className="w-full text-left bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 transition-all flex items-center justify-between group shadow-sm dark:shadow-none"
           >
             Starred Messages
-            <span className="text-gray-500 group-hover:text-white transition-colors">→</span>
+            <span className="text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-white transition-colors">→</span>
           </motion.button>
 
         </div>
@@ -220,13 +220,13 @@ function ProfilePage() {
           >
             <motion.div 
                  initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                 className="bg-[#1a1625] border border-white/10 rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
+                 className="bg-white dark:bg-[#1a1625] border border-gray-200 dark:border-white/10 rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
             >
-              <div className="p-5 border-b border-white/5 flex justify-between items-center bg-black/20">
-                <h3 className="text-lg font-bold text-white">Blocked Users</h3>
+              <div className="p-5 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50 dark:bg-black/20">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Blocked Users</h3>
                 <button
                   onClick={() => setShowBlockedModal(false)}
-                  className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                 >
                   ✕
                 </button>
@@ -238,7 +238,7 @@ function ProfilePage() {
                   {blockedUsers.map((u) => (
                     <div
                       key={u._id}
-                      className="flex items-center gap-3 hover:bg-white/5 rounded-xl p-3 transition-colors group"
+                      className="flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl p-3 transition-colors group"
                     >
                       <img
                         src={u.ProfilePic || assets.avatar_icon}
@@ -246,7 +246,7 @@ function ProfilePage() {
                         className="w-10 h-10 rounded-full object-cover"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-200 truncate">{u.fullName}</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-200 truncate">{u.fullName}</p>
                         <p className="text-xs text-gray-500 font-mono">ID: {u.userId}</p>
                       </div>
                       <button
@@ -282,13 +282,13 @@ function ProfilePage() {
           >
             <motion.div 
                 initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                className="bg-[#1a1625] border border-white/10 rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
+                className="bg-white dark:bg-[#1a1625] border border-gray-200 dark:border-white/10 rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
             >
-              <div className="p-5 border-b border-white/5 flex justify-between items-center bg-black/20">
-                <h3 className="text-lg font-bold text-white">Starred Messages</h3>
+              <div className="p-5 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50 dark:bg-black/20">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Starred Messages</h3>
                 <button
                   onClick={() => setShowStarredModal(false)}
-                  className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                 >
                   ✕
                 </button>
@@ -311,7 +311,7 @@ function ProfilePage() {
                           setShowStarredModal(false);
                           navigate("/");
                         }}
-                        className="flex cursor-pointer items-start gap-3 hover:bg-white/5 rounded-xl p-3 transition-colors group"
+                        className="flex cursor-pointer items-start gap-3 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl p-3 transition-colors group"
                       >
                         <img
                           src={otherUser?.ProfilePic || assets.avatar_icon}
@@ -319,7 +319,7 @@ function ProfilePage() {
                           className="w-10 h-10 rounded-full object-cover shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-200 truncate">{otherUser?.fullName}</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-200 truncate">{otherUser?.fullName}</p>
                           <p className="text-sm text-gray-400 mb-1 line-clamp-2">
                             {m.text || (m.image ? "📷 Image" : "(empty)")}
                           </p>

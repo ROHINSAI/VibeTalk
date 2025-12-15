@@ -60,18 +60,18 @@ export default function AddMembersModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#282142] border border-gray-600 rounded-xl p-6 w-[90%] max-w-md max-h-[80vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-[#282142] border border-gray-200 dark:border-gray-600 rounded-xl p-6 w-[90%] max-w-md max-h-[80vh] overflow-y-auto shadow-2xl">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-white">Add Members</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add Members</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
             ✕
           </button>
         </div>
 
         {/* Search */}
         <div className="mb-4">
-          <div className="flex items-center gap-2 bg-[#1a1625] border border-gray-600 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#1a1625] border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2">
             <svg
               className="w-4 h-4 text-gray-400"
               fill="none"
@@ -89,7 +89,7 @@ export default function AddMembersModal({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none outline-none text-white text-sm placeholder-gray-400 flex-1"
+              className="bg-transparent border-none outline-none text-gray-900 dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-400 flex-1"
               placeholder="Search friends..."
             />
           </div>
@@ -111,8 +111,8 @@ export default function AddMembersModal({
                   onClick={() => toggleMember(user._id)}
                   className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
                     isSelected
-                      ? "bg-violet-600/30 border border-violet-500"
-                      : "bg-[#1a1625] border border-gray-600 hover:bg-[#252035]"
+                      ? "bg-violet-100 dark:bg-violet-600/30 border border-violet-200 dark:border-violet-500"
+                      : "bg-gray-50 dark:bg-[#1a1625] border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-[#252035]"
                   }`}
                 >
                   <img
@@ -121,14 +121,14 @@ export default function AddMembersModal({
                     className="w-10 h-10 rounded-full"
                   />
                   <div className="flex-1">
-                    <p className="text-white font-medium">{user.fullName}</p>
-                    <p className="text-xs text-gray-400">ID: {user.userId}</p>
+                    <p className="text-gray-900 dark:text-white font-medium">{user.fullName}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">ID: {user.userId}</p>
                   </div>
                   <div
                     className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
                       isSelected
                         ? "bg-violet-600 border-violet-600"
-                        : "border-gray-500"
+                        : "border-gray-300 dark:border-gray-500"
                     }`}
                   >
                     {isSelected && (

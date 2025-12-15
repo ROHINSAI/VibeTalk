@@ -54,47 +54,47 @@ const RightSidebar = () => {
   if (!selectedUser) return null;
 
   return (
-    <div className="bg-gray-900/50 backdrop-blur-md border-l border-white/10 text-white w-full h-full flex flex-col overflow-hidden">
+    <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-md border-l border-gray-200/50 dark:border-white/10 text-gray-900 dark:text-white w-full h-full flex flex-col overflow-hidden transition-colors duration-300">
       
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-y-contain">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-white/10 scrollbar-track-transparent overscroll-y-contain">
         <div className="pt-10 pb-6 flex flex-col items-center gap-3 text-sm font-light px-6">
           <div className="relative">
             <img
               src={selectedUser?.ProfilePic || assets.avatar_icon}
               alt={selectedUser.fullName}
-              className="w-24 h-24 rounded-full object-cover border-4 border-gray-800 shadow-xl"
+              className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-xl"
             />
             {isOnline && (
-              <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+              <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
             )}
           </div>
           
           <div className="text-center space-y-1">
-            <h1 className="text-xl font-bold tracking-wide">
+            <h1 className="text-xl font-bold tracking-wide text-gray-900 dark:text-white">
               {selectedUser.fullName}
             </h1>
-            <p className="text-gray-400 text-xs max-w-[200px] mx-auto leading-relaxed">
+            <p className="text-gray-500 dark:text-gray-400 text-xs max-w-[200px] mx-auto leading-relaxed">
               {selectedUser.bio || "Hey there! I'm using VibeTalk."}
             </p>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 mt-2 w-full max-w-[220px] text-center">
+          <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 mt-2 w-full max-w-[220px] text-center shadow-sm dark:shadow-none">
             <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-0.5">User ID</p>
-            <p className="text-sm font-mono text-purple-300 truncate select-all">
+            <p className="text-sm font-mono text-purple-600 dark:text-purple-300 truncate select-all">
               {selectedUser.userId || selectedUser._id || "N/A"}
             </p>
           </div>
         </div>
 
-        <div className="px-6 font-medium text-sm text-gray-300 mb-2">Shared Media</div>
+        <div className="px-6 font-medium text-sm text-gray-500 dark:text-gray-300 mb-2">Shared Media</div>
         {mediaImages.length > 0 ? (
           <div className="px-6 grid grid-cols-2 gap-2 pb-6">
             {mediaImages.map((url, index) => (
               <div
                 key={index}
                 onClick={() => window.open(url, "_blank")}
-                className="cursor-pointer group relative aspect-square rounded-lg overflow-hidden bg-gray-800"
+                className="cursor-pointer group relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-white/5"
               >
                 <img
                   src={url}
@@ -105,23 +105,23 @@ const RightSidebar = () => {
             ))}
           </div>
         ) : (
-          <div className="px-6 pb-6 text-center text-gray-500 text-xs italic">
+          <div className="px-6 pb-6 text-center text-gray-400 dark:text-gray-500 text-xs italic">
             No media shared yet
           </div>
         )}
       </div>
 
       {/* Fixed Bottom Actions */}
-      <div className="p-4 bg-black/20 backdrop-blur-lg border-t border-white/5 flex flex-col gap-3 shrink-0">
+      <div className="p-4 bg-gray-50/80 dark:bg-black/20 backdrop-blur-lg border-t border-gray-200 dark:border-white/5 flex flex-col gap-3 shrink-0">
         <button
           onClick={handleRemoveFriend}
-          className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 text-sm font-medium py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+          className="w-full bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-500/20 text-sm font-medium py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
         >
           Remove Friend
         </button>
         <button
           onClick={handleBlockToggle}
-          className="w-full bg-gray-700/30 hover:bg-gray-700/50 text-gray-300 border border-white/10 text-sm font-medium py-2.5 px-4 rounded-xl transition-all"
+          className="w-full bg-gray-200/50 hover:bg-gray-200 dark:bg-gray-700/30 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/10 text-sm font-medium py-2.5 px-4 rounded-xl transition-all"
         >
           {isBlocked() ? "Unblock User" : "Block User"}
         </button>

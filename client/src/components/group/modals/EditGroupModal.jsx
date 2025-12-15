@@ -43,11 +43,11 @@ export default function EditGroupModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#282142] border border-gray-600 rounded-xl p-6 w-[90%] max-w-md">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-[#282142] border border-gray-200 dark:border-gray-600 rounded-xl p-6 w-[90%] max-w-md shadow-2xl">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-white">Edit Group</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Group</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
             ✕
           </button>
         </div>
@@ -56,7 +56,7 @@ export default function EditGroupModal({
           {/* Group Picture */}
           <div className="flex flex-col items-center mb-4">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-3xl overflow-hidden border-2 border-gray-600">
+              <div className="w-24 h-24 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-3xl overflow-hidden border-2 border-white dark:border-gray-600 shadow-lg">
                 {groupPic ? (
                   <img
                     src={groupPic}
@@ -70,7 +70,7 @@ export default function EditGroupModal({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 bg-violet-600 hover:bg-violet-700 text-white rounded-full p-2 border-2 border-[#282142]"
+                className="absolute bottom-0 right-0 bg-violet-600 hover:bg-violet-700 text-white rounded-full p-2 border-2 border-white dark:border-[#282142]"
               >
                 <svg
                   className="w-4 h-4"
@@ -99,7 +99,7 @@ export default function EditGroupModal({
                     setGroupPic("");
                     if (fileInputRef.current) fileInputRef.current.value = "";
                   }}
-                  className="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 border-2 border-[#282142]"
+                  className="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 border-2 border-white dark:border-[#282142]"
                 >
                   <svg
                     className="w-3 h-3"
@@ -135,7 +135,7 @@ export default function EditGroupModal({
 
           {/* Group Name */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">
+            <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">
               Group Name *
             </label>
             <input
@@ -143,21 +143,21 @@ export default function EditGroupModal({
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               placeholder="Enter group name"
-              className="w-full bg-[#1a1625] border border-gray-600 rounded-lg px-4 py-2 text-white outline-none focus:border-violet-500"
+              className="w-full bg-gray-50 dark:bg-[#1a1625] border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-gray-900 dark:text-white outline-none focus:border-violet-500 focus:bg-white dark:focus:bg-[#1a1625] transition-all placeholder-gray-400 dark:placeholder-gray-600"
               maxLength={50}
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">
+            <label className="block text-sm text-gray-700 dark:text-gray-400 mb-2 font-medium">
               Description (optional)
             </label>
             <textarea
               value={groupDescription}
               onChange={(e) => setGroupDescription(e.target.value)}
               placeholder="Enter group description"
-              className="w-full bg-[#1a1625] border border-gray-600 rounded-lg px-4 py-2 text-white outline-none focus:border-violet-500 resize-none"
+              className="w-full bg-gray-50 dark:bg-[#1a1625] border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-gray-900 dark:text-white outline-none focus:border-violet-500 focus:bg-white dark:focus:bg-[#1a1625] transition-all resize-none placeholder-gray-400 dark:placeholder-gray-600"
               rows={3}
               maxLength={200}
             />
