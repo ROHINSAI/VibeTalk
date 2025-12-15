@@ -1,6 +1,8 @@
 import assets from "../../../assets/assets";
 import { useContext } from "react";
 import { CallContext } from "../../../../context/CallContext";
+import { Phone, Video, ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function ChatHeader({
   selectedUser,
@@ -88,32 +90,26 @@ export default function ChatHeader({
           </p>
 
           {/* Call buttons for individual chat */}
-          <button
-            onClick={() => startCall(selectedUser, "voice")}
-            className="w-9 h-9 rounded-full bg-violet-600 hover:bg-violet-700 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-lg"
-            title="Voice call"
-          >
-            <svg
-              className="w-5 h-5 text-white"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+          <div className="flex items-center gap-3">
+             <motion.button
+                whileHover={{ scale: 1.1, backgroundColor: "rgba(124, 58, 237, 1)" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => startCall(selectedUser, "voice")}
+                className="w-10 h-10 rounded-full bg-violet-600/80 flex items-center justify-center shadow-lg backdrop-blur-sm border border-white/10 text-white transition-colors"
+                title="Voice call"
             >
-              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => startCall(selectedUser, "video")}
-            className="w-9 h-9 rounded-full bg-violet-600 hover:bg-violet-700 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95 shadow-lg"
-            title="Video call"
-          >
-            <svg
-              className="w-5 h-5 text-white"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+                <Phone size={20} />
+            </motion.button>
+            <motion.button
+                whileHover={{ scale: 1.1, backgroundColor: "rgba(124, 58, 237, 1)" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => startCall(selectedUser, "video")}
+                className="w-10 h-10 rounded-full bg-violet-600/80 flex items-center justify-center shadow-lg backdrop-blur-sm border border-white/10 text-white transition-colors"
+                title="Video call"
             >
-              <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-            </svg>
-          </button>
+                <Video size={20} />
+            </motion.button>
+          </div>
 
           <img
             src={assets.arrow_icon}
