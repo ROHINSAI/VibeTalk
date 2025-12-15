@@ -179,7 +179,10 @@ export const ChatProvider = ({ children }) => {
           }
         );
         const newMsg = res.data.message;
-        setMessages((prev) => [...prev, newMsg]);
+        setMessages((prev) => {
+           if (prev.some(m => m._id === newMsg._id)) return prev;
+           return [...prev, newMsg];
+        });
         setReplyMessage(null);
       } catch (err) {
         console.error("sendGroupMessage error:", err);
@@ -193,7 +196,10 @@ export const ChatProvider = ({ children }) => {
           replyTo: replyMessage?._id,
         });
         const newMsg = res.data.newMessage;
-        setMessages((prev) => [...prev, newMsg]);
+        setMessages((prev) => {
+           if (prev.some(m => m._id === newMsg._id)) return prev;
+           return [...prev, newMsg];
+        });
         setReplyMessage(null);
       } catch (err) {
         console.error("sendMessage error:", err);
@@ -219,7 +225,10 @@ export const ChatProvider = ({ children }) => {
           formData
         );
         const newMsg = res.data.message;
-        setMessages((prev) => [...prev, newMsg]);
+        setMessages((prev) => {
+           if (prev.some(m => m._id === newMsg._id)) return prev;
+           return [...prev, newMsg];
+        });
         toast.dismiss();
         toast.success("Voice message sent");
         return newMsg;
@@ -229,7 +238,10 @@ export const ChatProvider = ({ children }) => {
           formData
         );
         const newMsg = res.data.newMessage;
-        setMessages((prev) => [...prev, newMsg]);
+        setMessages((prev) => {
+           if (prev.some(m => m._id === newMsg._id)) return prev;
+           return [...prev, newMsg];
+        });
         toast.dismiss();
         toast.success("Voice message sent");
         return newMsg;
@@ -257,10 +269,15 @@ export const ChatProvider = ({ children }) => {
   const subscribeToMessages = () => {
     if (!socket || messageListenerRef.current) return;
 
+    // Message listener
     const handler = (newMessage) => {
       if (selectedUser && newMessage.senderId === selectedUser._id) {
         newMessage.seen = true;
-        setMessages((prev) => [...prev, newMessage]);
+        setMessages((prev) => {
+           // Deduplicate: check if message ID already exists
+           if (prev.some(m => m._id === newMessage._id)) return prev;
+           return [...prev, newMessage];
+        });
 
         axios
           .put(`/api/messages/seen/${newMessage._id}`)
@@ -311,7 +328,11 @@ export const ChatProvider = ({ children }) => {
     // Group message listener
     const groupMsgHandler = (newMessage) => {
       if (selectedGroup && newMessage.groupId === selectedGroup._id) {
-        setMessages((prev) => [...prev, newMessage]);
+        setMessages((prev) => {
+           // Deduplicate
+           if (prev.some(m => m._id === newMessage._id)) return prev;
+           return [...prev, newMessage];
+        });
       }
     };
     groupMessageListenerRef.current = groupMsgHandler;

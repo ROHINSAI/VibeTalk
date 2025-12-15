@@ -218,12 +218,17 @@ export const getGroupMessages = async (req, res) => {
     }
 
     // Get messages not deleted by this user
-    const messages = await GroupMessage.find({
+    // Get messages not deleted by this user
+    // Optimization: Limit to last 300 messages to speed up loading
+    let messages = await GroupMessage.find({
       groupId,
       deletedFor: { $nin: [userId] },
     })
       .populate("senderId", "fullName ProfilePic userId")
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: -1 })
+      .limit(300);
+
+    messages = messages.reverse();
 
     // Mark messages as seen by this user
     const unseenMessages = await GroupMessage.find({
