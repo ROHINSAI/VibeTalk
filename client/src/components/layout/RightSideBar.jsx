@@ -51,86 +51,88 @@ const RightSidebar = () => {
     }
   };
 
+  if (!selectedUser) return null;
+
   return (
-    selectedUser && (
-      <div
-        className={`bg-[#8185B2]/10 text-white w-full relative overflow-y-scroll ${
-          selectedUser ? "max-md:hidden" : ""
-        }`}
-      >
-        <div className="pt-16 flex flex-col items-center gap-2 text-xs font-light mx-auto">
-          <img
-            src={selectedUser?.ProfilePic || assets.avatar_icon}
-            alt={selectedUser.fullName}
-            className="w-20 aspect-[1/1] rounded-full"
-          />
-          <h1 className="px-10 text-xl font-medium mx-auto flex items-center gap-2">
-            <p
-              className={`w-2 h-2 rounded-full ${
-                isOnline ? "bg-green-500" : "bg-gray-500"
-              }`}
-            ></p>
-            {selectedUser.fullName}
-          </h1>
-          <p className="px-10 mx-auto text-center">
-            {selectedUser.bio || "No bio available"}
-          </p>
-          <div className="bg-[#282142] border border-gray-600 rounded-lg px-4 py-2 mt-2">
-            <p className="text-[10px] text-gray-400">User ID</p>
-            <p className="text-lg font-bold tracking-wider text-violet-400">
-              {selectedUser.userId || "N/A"}
+    <div className="bg-gray-900/50 backdrop-blur-md border-l border-white/10 text-white w-full h-full flex flex-col overflow-hidden">
+      
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+        <div className="pt-10 pb-6 flex flex-col items-center gap-3 text-sm font-light px-6">
+          <div className="relative">
+            <img
+              src={selectedUser?.ProfilePic || assets.avatar_icon}
+              alt={selectedUser.fullName}
+              className="w-24 h-24 rounded-full object-cover border-4 border-gray-800 shadow-xl"
+            />
+            {isOnline && (
+              <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+            )}
+          </div>
+          
+          <div className="text-center space-y-1">
+            <h1 className="text-xl font-bold tracking-wide">
+              {selectedUser.fullName}
+            </h1>
+            <p className="text-gray-400 text-xs max-w-[200px] mx-auto leading-relaxed">
+              {selectedUser.bio || "Hey there! I'm using VibeTalk."}
+            </p>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 mt-2 w-full max-w-[220px] text-center">
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-0.5">User ID</p>
+            <p className="text-sm font-mono text-purple-300 truncate select-all">
+              {selectedUser.userId || selectedUser._id || "N/A"}
             </p>
           </div>
         </div>
-        <hr className="border-[#ffffff50] my-4" />
 
-        <div className="px-5 text-xs">
-          <p>Media</p>
-
-          {mediaImages.length > 0 ? (
-            <div className="mt-2 max-h-[200px] overflow-y-scroll grid grid-cols-2 gap-4 opacity-80">
-              {mediaImages.map((url, index) => (
-                <div
-                  key={index}
-                  onClick={() => window.open(url, "_blank")}
-                  className="cursor-pointer rounded hover:opacity-100 transition-opacity"
-                >
-                  <img
-                    src={url}
-                    alt={`Media ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-md"
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="mt-2 text-gray-400 text-center py-4">
-              No media shared yet
-            </div>
-          )}
-        </div>
-        <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex flex-col gap-2 w-[calc(100%-40px)]">
-          <button
-            onClick={handleRemoveFriend}
-            className="w-full bg-red-600 hover:bg-red-700 text-white border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all"
-          >
-            Remove Friend
-          </button>
-          <button
-            onClick={handleBlockToggle}
-            className="w-full bg-gray-700 hover:bg-gray-800 text-white border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer transition-all"
-          >
-            {isBlocked() ? "Unblock" : "Block"}
-          </button>
-          <button
-            onClick={logout}
-            className="w-full bg-gradient-to-r from-purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-8 rounded-full cursor-pointer hover:from-purple-500 hover:to-violet-700 transition-all"
-          >
-            Logout
-          </button>
-        </div>
+        <div className="px-6 font-medium text-sm text-gray-300 mb-2">Shared Media</div>
+        {mediaImages.length > 0 ? (
+          <div className="px-6 grid grid-cols-2 gap-2 pb-6">
+            {mediaImages.map((url, index) => (
+              <div
+                key={index}
+                onClick={() => window.open(url, "_blank")}
+                className="cursor-pointer group relative aspect-square rounded-lg overflow-hidden bg-gray-800"
+              >
+                <img
+                  src={url}
+                  alt={`Shared ${index}`}
+                  className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="px-6 pb-6 text-center text-gray-500 text-xs italic">
+            No media shared yet
+          </div>
+        )}
       </div>
-    )
+
+      {/* Fixed Bottom Actions */}
+      <div className="p-4 bg-black/20 backdrop-blur-lg border-t border-white/5 flex flex-col gap-3 shrink-0">
+        <button
+          onClick={handleRemoveFriend}
+          className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 text-sm font-medium py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+        >
+          Remove Friend
+        </button>
+        <button
+          onClick={handleBlockToggle}
+          className="w-full bg-gray-700/30 hover:bg-gray-700/50 text-gray-300 border border-white/10 text-sm font-medium py-2.5 px-4 rounded-xl transition-all"
+        >
+          {isBlocked() ? "Unblock User" : "Block User"}
+        </button>
+        <button
+          onClick={logout}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border-0 text-sm font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-purple-900/20 transition-all mt-1"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
   );
 };
 
