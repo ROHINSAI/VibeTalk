@@ -70,7 +70,7 @@ export default function MemberList({
         const memberId = member._id || member.userId;
         const isOnline =
           Array.isArray(onlineUsersList) &&
-          onlineUsersList.some((u) => String(u.userId) === String(memberId));
+          onlineUsersList.some((u) => String(u) === String(memberId));
         const isAdmin = Array.isArray(group.admins)
           ? group.admins.some((a) => String(a._id || a) === String(memberId))
           : false;

@@ -7,7 +7,7 @@ export default function GroupHeader({ group, members = [], onlineUsers = [], onC
     (member) =>
       Array.isArray(onlineUsersList) &&
       onlineUsersList.some(
-        (u) => String(u.userId) === String(member._id || member.userId)
+        (u) => String(u) === String(member._id || member.userId)
       )
   ).length;
 
