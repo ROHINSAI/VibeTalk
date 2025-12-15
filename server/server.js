@@ -21,6 +21,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://vibe-talk-six.vercel.app",
+  "https://vibetalk-r1.onrender.com",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
