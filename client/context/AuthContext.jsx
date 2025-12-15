@@ -70,6 +70,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    // Set up axios to use token from localStorage
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
+
     checkAuth();
     return () => socket?.disconnect();
   }, []);
@@ -77,6 +83,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (state, credentials) => {
     try {
       const { data } = await axios.post(`/api/users/${state}`, credentials);
+
+      // Store token if provided
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+      }
 
       await checkAuth();
 
@@ -95,7 +107,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post("/api/users/logout"); // 👈
+      await axios.post("/api/users/logout");
+
+      // Clear token from localStorage and axios headers
+      localStorage.removeItem("token");
+      delete axios.defaults.headers.common["Authorization"];
 
       toast.success("Logged out successfully");
       setAuthUser(null);

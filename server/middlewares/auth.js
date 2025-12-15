@@ -3,7 +3,11 @@ import jwt from "jsonwebtoken";
 
 export const authenticate = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    // Check Authorization header first, then fall back to cookie
+    let token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      token = req.cookies.token;
+    }
 
     if (!token) {
       return res.status(401).json({ message: "No token provided." });
@@ -27,7 +31,10 @@ export const authenticate = async (req, res, next) => {
 };
 
 export const checkAuth = (req, res, next) => {
-  const token = req.cookies.token;
+  let token = req.headers.authorization?.replace("Bearer ", "");
+  if (!token) {
+    token = req.cookies.token;
+  }
 
   if (!token) {
     return res.status(401).json({ message: "No token provided." });
@@ -44,7 +51,10 @@ export const checkAuth = (req, res, next) => {
 };
 
 export const protectRoute = (req, res, next) => {
-  const token = req.cookies.token;
+  let token = req.headers.authorization?.replace("Bearer ", "");
+  if (!token) {
+    token = req.cookies.token;
+  }
 
   if (!token) {
     return res.status(401).json({ message: "No token provided." });

@@ -51,7 +51,7 @@ export const SignUp = async (req, res) => {
     });
     await newUser.save();
 
-    res.status(201).json({ message: "User created successfully." });
+    res.status(201).json({ message: "User created successfully.", token });
   } catch (error) {
     console.error("Error in SignUp:", error);
     res.status(500).json({ message: "Server error." });
@@ -86,7 +86,7 @@ export const Login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ message: "Login successful." });
+    res.status(200).json({ message: "Login successful.", token });
   } catch (error) {
     console.error("Error in Login:", error);
     res.status(500).json({ message: "Server error." });
