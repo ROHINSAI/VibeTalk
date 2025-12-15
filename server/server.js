@@ -46,9 +46,9 @@ app.get("/", (req, res) => {
     message: "VibeTalk API Server",
     status: "running",
     endpoints: {
-      status: "/status",
-      users: "/users",
-      messages: "/messages",
+      status: "/api/status",
+      users: "/api/users",
+      messages: "/api/messages",
     },
   });
 });
@@ -172,10 +172,10 @@ const initDB = async () => {
 
 initDB();
 
-if (process.env.NODE_ENV !== "production") {
-  server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
+// Always start the HTTP server. Render (and other hosts) set NODE_ENV=production,
+// so we must listen regardless of NODE_ENV.
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
 export default app;
