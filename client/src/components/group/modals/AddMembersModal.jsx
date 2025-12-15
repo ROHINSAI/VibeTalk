@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import { ChatContext } from "../../../../context/ChatContext";
 import toast from "react-hot-toast";
+import assets from "../../../../assets/assets";
 
 export default function AddMembersModal({
   open,
@@ -116,7 +117,7 @@ export default function AddMembersModal({
                   }`}
                 >
                   <img
-                    src={user.ProfilePic || "/avatar_icon.png"}
+                    src={user.ProfilePic || assets.avatar_icon}
                     alt={user.fullName}
                     className="w-10 h-10 rounded-full"
                   />

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import assets from "../../../../assets/assets";
 
 export default function MemberList({
   members = [],
@@ -85,7 +86,7 @@ export default function MemberList({
           >
             <div className="relative shrink-0">
               <img
-                src={member.ProfilePic || "/avatar_icon.png"}
+                src={member.ProfilePic || assets.avatar_icon}
                 alt={member.fullName}
                 className="w-9 h-9 rounded-full object-cover"
               />
