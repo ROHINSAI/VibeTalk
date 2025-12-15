@@ -4,8 +4,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import "dotenv/config";
-import path from "path";
-import { fileURLToPath } from "url";
 import { connectDB, disconnectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRouter.js";
@@ -14,9 +12,6 @@ import groupRouter from "./routes/groupRouter.js";
 import geminiRouter from "./routes/geminiRouter.js";
 const app = express();
 const server = http.createServer(app);
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -46,7 +41,7 @@ app.use(
   })
 );
 
-app.get("/api/health", (req, res) => {
+app.get("/", (req, res) => {
   res.json({
     message: "VibeTalk API Server",
     status: "running",
@@ -75,14 +70,6 @@ app.use("/api/messages", messageRouter);
 app.use("/api/friends", friendRouter);
 app.use("/api/groups", groupRouter);
 app.use("/api/gemini", geminiRouter);
-
-// Serve static files from the client/dist directory
-app.use(express.static(path.join(__dirname, "../client/dist")));
-
-// Handle SPA routing by returning index.html for unknown routes
-app.get("/:pathMatch(.*)", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-});
 
 export const io = new Server(server, {
   cors: {
