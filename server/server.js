@@ -112,7 +112,11 @@ io.on("connection", (socket) => {
     redis.sadd("online_users", userId).then(async () => {
       const onlineUserIds = await redis.smembers("online_users");
       io.emit("getOnlineUsers", onlineUserIds);
-    }).catch(e => console.error("Redis sadd error:", e));
+    }).catch(e => {
+      console.error("Redis sadd error:", e.message || e);
+      // Fallback to local memory if Redis fails
+      io.emit("getOnlineUsers", [...userSocketMap.keys()]);
+    });
   }
 
   socket.on("disconnect", () => {
@@ -120,7 +124,11 @@ io.on("connection", (socket) => {
     redis.srem("online_users", userId).then(async () => {
       const onlineUserIds = await redis.smembers("online_users");
       io.emit("getOnlineUsers", onlineUserIds);
-    }).catch(e => console.error("Redis srem error:", e));
+    }).catch(e => {
+      console.error("Redis srem error:", e.message || e);
+      // Fallback to local memory if Redis fails
+      io.emit("getOnlineUsers", [...userSocketMap.keys()]);
+    });
 
     // update user's lastSeen timestamp
     try {

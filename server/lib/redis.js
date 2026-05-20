@@ -8,6 +8,7 @@ const redisUri = process.env.REDIS_URI || "";
 export const redis = new Redis(redisUri, {
   connectTimeout: 5000, // 5 seconds timeout
   maxRetriesPerRequest: 1, // Don't hang requests if connection fails
+  enableOfflineQueue: false, // Instantly fail commands if Redis is disconnected (crucial for Socket.io fallback)
   retryStrategy(times) {
     if (times > 3) {
       console.error("Redis retry limit reached. Disabling Redis.");

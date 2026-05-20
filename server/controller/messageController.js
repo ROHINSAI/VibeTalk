@@ -8,43 +8,35 @@ export const getUsersForSidebar = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const data = await getOrSetCache(`sidebarContacts:${userId}`, 60, async () => {
-      // Get current user with populated friends
-      const currentUser = await User.findById(userId).populate(
-        "friends",
-        "-password"
-      ).lean();
+    // Get current user with populated friends
+    const currentUser = await User.findById(userId).populate(
+      "friends",
+      "-password"
+    ).lean();
 
-      if (!currentUser) {
-        return null;
-      }
-
-      // Return only friends
-      const filteredUsers = currentUser.friends;
-
-      const unseenMessages = {};
-      const promises = filteredUsers.map(async (user) => {
-        const messages = await Message.find({
-          senderId: user._id,
-          receiverId: userId,
-          seen: false,
-        });
-
-        if (messages.length > 0) {
-          unseenMessages[user._id] = messages.length;
-        }
-      });
-
-      await Promise.all(promises);
-      
-      return { users: filteredUsers, unseenMessages };
-    });
-
-    if (!data) {
+    if (!currentUser) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    res.status(200).json(data);
+    // Return only friends
+    const filteredUsers = currentUser.friends;
+
+    const unseenMessages = {};
+    const promises = filteredUsers.map(async (user) => {
+      const messages = await Message.find({
+        senderId: user._id,
+        receiverId: userId,
+        seen: false,
+      });
+
+      if (messages.length > 0) {
+        unseenMessages[user._id] = messages.length;
+      }
+    });
+
+    await Promise.all(promises);
+    
+    res.status(200).json({ users: filteredUsers, unseenMessages });
   } catch (error) {
     console.error("Error in getUsersForSidebar:", error);
     res.status(500).json({ message: "Server error." });
