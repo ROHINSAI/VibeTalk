@@ -34,6 +34,9 @@ groupRequestSchema.index(
   { unique: true, sparse: true }
 );
 
+// Optimize querying pending group requests for a user
+groupRequestSchema.index({ receiver: 1, status: 1 });
+
 const GroupRequest = mongoose.model("GroupRequest", groupRequestSchema);
 
 export default GroupRequest;

@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Optimize search by user name
+userSchema.index({ fullName: "text" });
+
 const User = mongoose.model("User", userSchema);
 
 export default User;

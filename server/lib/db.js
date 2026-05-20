@@ -11,7 +11,7 @@ export async function connectDB(uri = process.env.MONGODB_URI) {
   }
 
   try {
-    await mongoose.connect(uri);
+    await mongoose.connect(uri, { autoIndex: false });
     console.log("MongoDB connected");
   } catch (err) {
     console.error("MongoDB connection error:", err);

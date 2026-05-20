@@ -11,6 +11,8 @@ import friendRouter from "./routes/friendRouter.js";
 import groupRouter from "./routes/groupRouter.js";
 import geminiRouter from "./routes/geminiRouter.js";
 import { redis } from "./lib/redis.js";
+import cron from "node-cron";
+import { buildAllIndexes } from "./scripts/buildIndexes.js";
 const app = express();
 const server = http.createServer(app);
 
@@ -216,6 +218,17 @@ server.listen(PORT, async () => {
   } catch (e) {
     console.error("Failed to clear online users from Redis:", e);
   }
+
+  // Schedule MongoDB Index building every day at 2:30 AM IST
+  cron.schedule("30 2 * * *", () => {
+    console.log("Running scheduled MongoDB index build (2:30 AM IST)...");
+    buildAllIndexes();
+  }, {
+    scheduled: true,
+    timezone: "Asia/Kolkata"
+  });
+  console.log("Scheduled automated index building at 2:30 AM IST.");
+
   console.log(`Server is running on port ${PORT}`);
 });
 

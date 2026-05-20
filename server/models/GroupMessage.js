@@ -33,6 +33,9 @@ const groupMessageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Optimize fetching group chat history in chronological order
+groupMessageSchema.index({ groupId: 1, createdAt: -1 });
+
 const GroupMessage = mongoose.model("GroupMessage", groupMessageSchema);
 
 export default GroupMessage;

@@ -26,6 +26,9 @@ const groupSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Optimize fetching groups for a specific user
+groupSchema.index({ members: 1 });
+
 const Group = mongoose.model("Group", groupSchema);
 
 export default Group;

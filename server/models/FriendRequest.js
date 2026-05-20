@@ -24,6 +24,9 @@ const friendRequestSchema = new mongoose.Schema(
 // Prevent duplicate friend requests
 friendRequestSchema.index({ sender: 1, receiver: 1 }, { unique: true });
 
+// Optimize querying pending requests for a user
+friendRequestSchema.index({ receiver: 1, status: 1 });
+
 const FriendRequest = mongoose.model("FriendRequest", friendRequestSchema);
 
 export default FriendRequest;
