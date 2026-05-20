@@ -9,6 +9,8 @@ export default function useChatLogic({
   authUser,
   scrollToMessageId,
   setScrollToMessageId,
+  hasMoreMessages,
+  isLoadingMore,
 }) {
   const scrollEnd = useRef(null);
   const messagesRef = useRef(null);
@@ -76,6 +78,19 @@ export default function useChatLogic({
     .reverse()
     .find((m) => m.senderId === authUser?._id && m.seen);
 
+  const loadMoreMessages = () => {
+    if (isLoadingMore || !hasMoreMessages || messages.length === 0) return;
+    
+    // The cursor is the _id of the oldest message (first in the array)
+    const oldestMessageId = messages[0]._id;
+    
+    if (selectedUser) {
+      getMessages(selectedUser._id, oldestMessageId);
+    } else if (selectedGroup) {
+      getGroupMessages(selectedGroup._id, oldestMessageId);
+    }
+  };
+
   return {
     scrollEnd,
     messagesRef,
@@ -83,5 +98,6 @@ export default function useChatLogic({
     setIsAtBottom,
     recentlySeen,
     lastSeenSentMessage,
+    loadMoreMessages,
   };
 }

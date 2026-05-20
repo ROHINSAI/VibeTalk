@@ -35,6 +35,8 @@ function ChatContainer({
     selectedGroup,
     setSelectedGroup,
     getGroupMessages,
+    hasMoreMessages,
+    isLoadingMore,
   } = useContext(ChatContext);
   const { sendAudioMessage } = useContext(ChatContext);
 
@@ -64,6 +66,7 @@ function ChatContainer({
     setIsAtBottom,
     recentlySeen,
     lastSeenSentMessage,
+    loadMoreMessages,
   } = useChatLogic({
     selectedUser,
     selectedGroup,
@@ -73,6 +76,8 @@ function ChatContainer({
     authUser,
     scrollToMessageId,
     setScrollToMessageId,
+    hasMoreMessages,
+    isLoadingMore,
   });
 
   const isOnline =
@@ -94,16 +99,35 @@ function ChatContainer({
 
       <div
         ref={messagesRef}
-        onScroll={() => {
+        onScroll={(e) => {
           const el = messagesRef.current;
           if (!el) return;
           const distanceFromBottom =
             el.scrollHeight - (el.scrollTop + el.clientHeight);
           setIsAtBottom(distanceFromBottom < 150);
+          
+          if (el.scrollTop === 0 && hasMoreMessages && !isLoadingMore) {
+            // Save scroll height before loading more so we can restore scroll position
+            const previousScrollHeight = el.scrollHeight;
+            loadMoreMessages();
+            
+            // A simple trick to restore scroll position after React renders the new messages:
+            setTimeout(() => {
+              if (messagesRef.current) {
+                const newScrollHeight = messagesRef.current.scrollHeight;
+                messagesRef.current.scrollTop = newScrollHeight - previousScrollHeight;
+              }
+            }, 100);
+          }
         }}
         className="flex-1 overflow-y-auto p-3 pb-4 min-h-0"
       >
-        {messages.length === 0 ? (
+        {isLoadingMore && (
+          <div className="flex justify-center items-center py-2">
+            <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+        {messages.length === 0 && !isLoadingMore ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-70">
             <div className="text-4xl">👋</div>
             <p className="text-lg font-medium text-gray-300">

@@ -225,6 +225,7 @@ export const getGroupMessages = async (req, res) => {
   try {
     const { groupId } = req.params;
     const userId = req.userId;
+    const { cursor } = req.query;
 
     // Verify user is a member
     const group = await Group.findById(groupId);
@@ -236,18 +237,24 @@ export const getGroupMessages = async (req, res) => {
       return res.status(403).json({ message: "Not a member of this group" });
     }
 
-    // Get messages not deleted by this user
-    // Get messages not deleted by this user
-    // Optimization: Limit to last 300 messages to speed up loading
-    let messages = await GroupMessage.find({
+    const query = {
       groupId,
       deletedFor: { $nin: [userId] },
-    })
+    };
+
+    if (cursor) {
+      query._id = { $lt: cursor };
+    }
+
+    // Get messages not deleted by this user
+    let messages = await GroupMessage.find(query)
       .populate("senderId", "fullName ProfilePic userId")
-      .sort({ createdAt: -1 })
-      .limit(300);
+      .sort({ _id: -1 })
+      .limit(50);
 
     messages = messages.reverse();
+    
+    const hasMore = messages.length === 50;
 
     // Mark messages as seen by this user
     const unseenMessages = await GroupMessage.find({
@@ -267,7 +274,7 @@ export const getGroupMessages = async (req, res) => {
       );
     }
 
-    res.status(200).json({ messages });
+    res.status(200).json({ messages, hasMore });
   } catch (error) {
     console.error("Error in getGroupMessages:", error);
     res.status(500).json({ message: "Server error" });

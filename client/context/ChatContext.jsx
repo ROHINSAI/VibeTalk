@@ -15,6 +15,10 @@ export const ChatProvider = ({ children }) => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [groupRequests, setGroupRequests] = useState([]);
   const [replyMessage, setReplyMessage] = useState(null);
+  
+  // Pagination States
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const { socket, axios, authUser } = useContext(AuthContext);
   const messageListenerRef = useRef(null);
@@ -78,12 +82,37 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const getMessages = useCallback(async (userId) => {
+  const getMessages = useCallback(async (userId, cursor = null) => {
     if (!userId) return;
-    setMessages([]); // Clear previous messages
+    
+    if (!cursor) {
+      setMessages([]); // Clear previous messages on initial load
+      setHasMoreMessages(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
     try {
-      const res = await axios.get(`/api/messages/${userId}`);
-      setMessages(res.data.messages || []);
+      const url = cursor 
+        ? `/api/messages/${userId}?cursor=${cursor}`
+        : `/api/messages/${userId}`;
+        
+      const res = await axios.get(url);
+      const newMessages = res.data.messages || [];
+      
+      setHasMoreMessages(res.data.hasMore || false);
+      
+      if (cursor) {
+        // Prepend older messages to the existing list
+        setMessages(prev => {
+          // Filter out duplicates just in case
+          const existingIds = new Set(prev.map(m => m._id));
+          const uniqueNew = newMessages.filter(m => !existingIds.has(m._id));
+          return [...uniqueNew, ...prev];
+        });
+      } else {
+        setMessages(newMessages);
+      }
 
       setUnseenMessages((prev) => {
         const copy = { ...prev };
@@ -92,12 +121,21 @@ export const ChatProvider = ({ children }) => {
       });
     } catch (err) {
       console.error("getMessages error:", err);
+    } finally {
+      if (cursor) setIsLoadingMore(false);
     }
   }, [axios]);
 
-  const getGroupMessages = useCallback(async (groupId) => {
+  const getGroupMessages = useCallback(async (groupId, cursor = null) => {
     if (!groupId) return;
-    setMessages([]); // Clear previous messages
+    
+    if (!cursor) {
+      setMessages([]); // Clear previous messages on initial load
+      setHasMoreMessages(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+    
     try {
       // client-side guard: if we have the group locally and user is not a member, skip request
       const localGroup = groups.find((g) => String(g._id) === String(groupId));
@@ -117,8 +155,24 @@ export const ChatProvider = ({ children }) => {
         return;
       }
 
-      const res = await axios.get(`/api/groups/${groupId}/messages`);
-      setMessages(res.data.messages || []);
+      const url = cursor 
+        ? `/api/groups/${groupId}/messages?cursor=${cursor}`
+        : `/api/groups/${groupId}/messages`;
+
+      const res = await axios.get(url);
+      const newMessages = res.data.messages || [];
+      
+      setHasMoreMessages(res.data.hasMore || false);
+      
+      if (cursor) {
+        setMessages(prev => {
+          const existingIds = new Set(prev.map(m => m._id));
+          const uniqueNew = newMessages.filter(m => !existingIds.has(m._id));
+          return [...uniqueNew, ...prev];
+        });
+      } else {
+        setMessages(newMessages);
+      }
     } catch (err) {
       console.error("getGroupMessages error:", err);
       const status = err?.response?.status;
@@ -141,16 +195,8 @@ export const ChatProvider = ({ children }) => {
           err.response?.data?.message || "Failed to load group messages"
         );
       }
-      // log request details to help debug cross-origin/auth issues
-      try {
-        console.debug(
-          "getGroupMessages request:",
-          err?.config?.method,
-          err?.config?.url
-        );
-      } catch (e) {
-        /* ignore */
-      }
+    } finally {
+      if (cursor) setIsLoadingMore(false);
     }
   }, [axios, groups, authUser, getGroups, setSelectedGroup]);
 
@@ -435,6 +481,8 @@ export const ChatProvider = ({ children }) => {
     getGroupMessages,
     replyMessage,
     setReplyMessage,
+    hasMoreMessages,
+    isLoadingMore,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

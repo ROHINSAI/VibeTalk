@@ -47,9 +47,9 @@ export const getMessages = async (req, res) => {
   try {
     const userId = req.userId;
     const otherUserId = req.params.userId;
+    const { cursor } = req.query;
 
-    // Exclude messages that the current user has deleted for themselves
-    const messages = await Message.find({
+    const query = {
       $and: [
         {
           $or: [
@@ -64,7 +64,22 @@ export const getMessages = async (req, res) => {
           ],
         },
       ],
-    }).sort({ createdAt: 1 }).populate("replyTo", "text senderId audio image");
+    };
+
+    if (cursor) {
+      query._id = { $lt: cursor };
+    }
+
+    // Exclude messages that the current user has deleted for themselves
+    let messages = await Message.find(query)
+      .sort({ _id: -1 })
+      .limit(50)
+      .populate("replyTo", "text senderId audio image");
+      
+    // Reverse so the newest is at the bottom again
+    messages = messages.reverse();
+
+    const hasMore = messages.length === 50;
 
     // Find messages that will be marked seen so we can notify senders
     const messagesToMark = await Message.find({
@@ -106,7 +121,7 @@ export const getMessages = async (req, res) => {
       console.warn("Failed to update lastSeen on getMessages:", e.message || e);
     }
 
-    res.status(200).json({ messages });
+    res.status(200).json({ messages, hasMore });
   } catch (error) {
     console.error("Error in getMessages:", error);
     res.status(500).json({ message: "Server error." });
