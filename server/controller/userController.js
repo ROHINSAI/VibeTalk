@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { generateToken } from "../lib/utils.js";
 import cloudinary from "../lib/cloudinary.js";
+import { invalidateCache } from "../lib/redis.js";
 
 // Generate unique 6-digit userId
 const generateUserId = async () => {
@@ -161,6 +162,9 @@ export const updateProfile = async (req, res) => {
     }
 
     await user.save();
+    
+    // Invalidate the cache
+    await invalidateCache(`userProfile:${userId}`);
 
     const userObj = user.toObject();
     delete userObj.password;

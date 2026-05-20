@@ -2,40 +2,49 @@ import Message from "../models/Message.js";
 import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js";
 import { io, userSocketMap } from "../server.js";
+import { getOrSetCache } from "../lib/redis.js";
 
 export const getUsersForSidebar = async (req, res) => {
   try {
     const userId = req.userId;
 
-    // Get current user with populated friends
-    const currentUser = await User.findById(userId).populate(
-      "friends",
-      "-password"
-    );
+    const data = await getOrSetCache(`sidebarContacts:${userId}`, 60, async () => {
+      // Get current user with populated friends
+      const currentUser = await User.findById(userId).populate(
+        "friends",
+        "-password"
+      ).lean();
 
-    if (!currentUser) {
+      if (!currentUser) {
+        return null;
+      }
+
+      // Return only friends
+      const filteredUsers = currentUser.friends;
+
+      const unseenMessages = {};
+      const promises = filteredUsers.map(async (user) => {
+        const messages = await Message.find({
+          senderId: user._id,
+          receiverId: userId,
+          seen: false,
+        });
+
+        if (messages.length > 0) {
+          unseenMessages[user._id] = messages.length;
+        }
+      });
+
+      await Promise.all(promises);
+      
+      return { users: filteredUsers, unseenMessages };
+    });
+
+    if (!data) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Return only friends
-    const filteredUsers = currentUser.friends;
-
-    const unseenMessages = {};
-    const promises = filteredUsers.map(async (user) => {
-      const messages = await Message.find({
-        senderId: user._id,
-        receiverId: userId,
-        seen: false,
-      });
-
-      if (messages.length > 0) {
-        unseenMessages[user._id] = messages.length;
-      }
-    });
-
-    await Promise.all(promises);
-
-    res.status(200).json({ users: filteredUsers, unseenMessages });
+    res.status(200).json(data);
   } catch (error) {
     console.error("Error in getUsersForSidebar:", error);
     res.status(500).json({ message: "Server error." });

@@ -10,6 +10,7 @@ import messageRouter from "./routes/messageRouter.js";
 import friendRouter from "./routes/friendRouter.js";
 import groupRouter from "./routes/groupRouter.js";
 import geminiRouter from "./routes/geminiRouter.js";
+import { redis } from "./lib/redis.js";
 const app = express();
 const server = http.createServer(app);
 
@@ -66,6 +67,26 @@ app.get("/api/messages/test", (req, res) => {
   res.json({ message: "Messages endpoint is working!", timestamp: Date.now() });
 });
 
+app.get("/api/redis/test", async (req, res) => {
+  try {
+    // Set a key that expires in 60 seconds
+    await redis.set("vibetalk_test", "Redis connection is working perfectly!", "EX", 60);
+    const value = await redis.get("vibetalk_test");
+    
+    res.json({
+      success: true,
+      message: "Successfully connected to Redis",
+      data: value
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to connect to Redis",
+      error: error.message
+    });
+  }
+});
+
 app.use("/api/users", userRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/friends", friendRouter);
@@ -88,14 +109,18 @@ io.on("connection", (socket) => {
 
   if (userId && userId !== "undefined") {
     userSocketMap.set(userId, socket.id);
-    const onlineUserIds = [...userSocketMap.keys()];
-    io.emit("getOnlineUsers", onlineUserIds);
+    redis.sadd("online_users", userId).then(async () => {
+      const onlineUserIds = await redis.smembers("online_users");
+      io.emit("getOnlineUsers", onlineUserIds);
+    }).catch(e => console.error("Redis sadd error:", e));
   }
 
   socket.on("disconnect", () => {
     userSocketMap.delete(userId);
-    const onlineUserIds = [...userSocketMap.keys()];
-    io.emit("getOnlineUsers", onlineUserIds);
+    redis.srem("online_users", userId).then(async () => {
+      const onlineUserIds = await redis.smembers("online_users");
+      io.emit("getOnlineUsers", onlineUserIds);
+    }).catch(e => console.error("Redis srem error:", e));
 
     // update user's lastSeen timestamp
     try {
@@ -175,7 +200,14 @@ initDB();
 
 // Always start the HTTP server. Render (and other hosts) set NODE_ENV=production,
 // so we must listen regardless of NODE_ENV.
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
+  try {
+    // Clear the online users list in Redis on server start to prevent stale data if the server crashed
+    await redis.del("online_users");
+    console.log("Cleared stale online users from Redis");
+  } catch (e) {
+    console.error("Failed to clear online users from Redis:", e);
+  }
   console.log(`Server is running on port ${PORT}`);
 });
 

@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
+import { getOrSetCache, invalidateCache } from "../lib/redis.js";
 
 // Send a friend request
 export const sendFriendRequest = async (req, res) => {
@@ -119,6 +120,9 @@ export const sendFriendRequest = async (req, res) => {
       });
     }
 
+    // Invalidate receiver's friend requests cache
+    await invalidateCache(`friendRequests:${receiver._id}`);
+
     res.status(201).json({ message: "Friend request sent successfully" });
   } catch (error) {
     console.error("Error in sendFriendRequest:", error.message);
@@ -131,12 +135,15 @@ export const getFriendRequests = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const friendRequests = await FriendRequest.find({
-      receiver: userId,
-      status: "pending",
-    })
-      .populate("sender", "fullName ProfilePic userId")
-      .sort({ createdAt: -1 });
+    const friendRequests = await getOrSetCache(`friendRequests:${userId}`, 3600, async () => {
+      return await FriendRequest.find({
+        receiver: userId,
+        status: "pending",
+      })
+        .populate("sender", "fullName ProfilePic userId")
+        .sort({ createdAt: -1 })
+        .lean();
+    });
 
     res.status(200).json(friendRequests);
   } catch (error) {
@@ -149,12 +156,17 @@ export const getFriendRequests = async (req, res) => {
 export const getBlockedUsers = async (req, res) => {
   try {
     const userId = req.userId;
-    const user = await User.findById(userId).populate(
-      "blocked",
-      "fullName ProfilePic userId"
-    );
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.status(200).json({ blocked: user.blocked || [] });
+    
+    const blockedData = await getOrSetCache(`blockedUsers:${userId}`, 3600, async () => {
+      const user = await User.findById(userId).populate(
+        "blocked",
+        "fullName ProfilePic userId"
+      ).lean();
+      return { blocked: user?.blocked || [] };
+    });
+    
+    if (!blockedData) return res.status(404).json({ message: "User not found" });
+    res.status(200).json(blockedData);
   } catch (error) {
     console.error("Error in getBlockedUsers:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -212,6 +224,11 @@ export const acceptFriendRequest = async (req, res) => {
       });
     }
 
+    // Invalidate caches
+    await invalidateCache(`friendRequests:${userId}`);
+    await invalidateCache(`sidebarContacts:${userId}`);
+    await invalidateCache(`sidebarContacts:${friendRequest.sender}`);
+
     res.status(200).json({ message: "Friend request accepted" });
   } catch (error) {
     console.error("Error in acceptFriendRequest:", error.message);
@@ -243,6 +260,9 @@ export const declineFriendRequest = async (req, res) => {
     friendRequest.status = "declined";
     await friendRequest.save();
 
+    // Invalidate cache
+    await invalidateCache(`friendRequests:${userId}`);
+
     res.status(200).json({ message: "Friend request declined" });
   } catch (error) {
     console.error("Error in declineFriendRequest:", error.message);
@@ -272,6 +292,10 @@ export const removeFriend = async (req, res) => {
     if (friendSocketId) {
       io.to(friendSocketId).emit("friendRemoved", { userId });
     }
+
+    // Invalidate caches
+    await invalidateCache(`sidebarContacts:${userId}`);
+    await invalidateCache(`sidebarContacts:${friendId}`);
 
     res.status(200).json({ message: "Friend removed successfully" });
   } catch (error) {
@@ -303,6 +327,13 @@ export const blockUser = async (req, res) => {
         { sender: userId, receiver: me },
       ],
     });
+
+    // Invalidate caches
+    await invalidateCache(`sidebarContacts:${me}`);
+    await invalidateCache(`sidebarContacts:${userId}`);
+    await invalidateCache(`blockedUsers:${me}`);
+    await invalidateCache(`friendRequests:${me}`);
+    await invalidateCache(`friendRequests:${userId}`);
 
     res.status(200).json({ message: "User blocked" });
   } catch (error) {
@@ -374,6 +405,11 @@ export const unblockUser = async (req, res) => {
         emitErr.message || emitErr
       );
     }
+
+    // Invalidate caches
+    await invalidateCache(`blockedUsers:${me}`);
+    await invalidateCache(`sidebarContacts:${me}`);
+    await invalidateCache(`sidebarContacts:${userId}`);
 
     res.status(200).json({ message: "User unblocked and friended" });
   } catch (error) {

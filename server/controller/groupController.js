@@ -4,6 +4,7 @@ import GroupMessage from "../models/GroupMessage.js";
 import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js";
 import { io, userSocketMap } from "../server.js";
+import { getOrSetCache, invalidateCache } from "../lib/redis.js";
 
 export const createGroup = async (req, res) => {
   try {
@@ -81,7 +82,12 @@ export const createGroup = async (req, res) => {
           .populate("group", "name description");
         io.to(receiverSocketId).emit("newGroupRequest", populatedRequest);
       }
+      // Invalidate receiver's group requests cache
+      await invalidateCache(`groupRequests:${memberId}`);
     }
+
+    // Invalidate creator's group cache
+    await invalidateCache(`userGroups:${creatorId}`);
 
     res.status(201).json({
       message: "Group created and invitations sent",
@@ -98,10 +104,13 @@ export const getGroups = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const groups = await Group.find({ members: userId })
-      .populate("creator", "fullName ProfilePic userId")
-      .populate("members", "fullName ProfilePic userId")
-      .sort({ updatedAt: -1 });
+    const groups = await getOrSetCache(`userGroups:${userId}`, 3600, async () => {
+      return await Group.find({ members: userId })
+        .populate("creator", "fullName ProfilePic userId")
+        .populate("members", "fullName ProfilePic userId")
+        .sort({ updatedAt: -1 })
+        .lean();
+    });
 
     res.status(200).json({ groups });
   } catch (error) {
@@ -114,13 +123,16 @@ export const getGroupRequests = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const requests = await GroupRequest.find({
-      receiver: userId,
-      status: "pending",
-    })
-      .populate("sender", "fullName ProfilePic userId")
-      .populate("group", "name description creator")
-      .sort({ createdAt: -1 });
+    const requests = await getOrSetCache(`groupRequests:${userId}`, 3600, async () => {
+      return await GroupRequest.find({
+        receiver: userId,
+        status: "pending",
+      })
+        .populate("sender", "fullName ProfilePic userId")
+        .populate("group", "name description creator")
+        .sort({ createdAt: -1 })
+        .lean();
+    });
 
     res.status(200).json({ requests });
   } catch (error) {
@@ -171,6 +183,10 @@ export const acceptGroupRequest = async (req, res) => {
       }
     });
 
+    // Invalidate caches
+    await invalidateCache(`userGroups:${userId}`);
+    await invalidateCache(`groupRequests:${userId}`);
+
     res.status(200).json({ message: "Joined group", group: populatedGroup });
   } catch (error) {
     console.error("Error in acceptGroupRequest:", error);
@@ -194,6 +210,9 @@ export const declineGroupRequest = async (req, res) => {
 
     request.status = "declined";
     await request.save();
+
+    // Invalidate cache
+    await invalidateCache(`groupRequests:${userId}`);
 
     res.status(200).json({ message: "Request declined" });
   } catch (error) {
@@ -381,6 +400,9 @@ export const leaveGroup = async (req, res) => {
         io.to(memberSocketId).emit("groupUpdated", group);
       }
     });
+
+    // Invalidate leaver's cache
+    await invalidateCache(`userGroups:${userId}`);
 
     res.status(200).json({ message: "Left group" });
   } catch (error) {
@@ -789,6 +811,9 @@ export const addMember = async (req, res) => {
           .populate("group", "name description");
         io.to(receiverSocketId).emit("newGroupRequest", populatedRequest);
       }
+      
+      // Invalidate cache for receiver
+      await invalidateCache(`groupRequests:${memberId}`);
     }
 
     res
@@ -854,6 +879,9 @@ export const removeMember = async (req, res) => {
         io.to(socketId).emit("groupUpdated", populatedGroup);
       }
     });
+
+    // Invalidate cache for removed member
+    await invalidateCache(`userGroups:${memberId}`);
 
     res.status(200).json({ message: "Member removed", group: populatedGroup });
   } catch (error) {
