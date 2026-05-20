@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js";
 import { io, userSocketMap } from "../server.js";
 import { getOrSetCache, invalidateCache } from "../lib/redis.js";
+import { publishOfflineMessage } from "../lib/amqp.js";
 
 export const createGroup = async (req, res) => {
   try {
@@ -352,12 +353,24 @@ export const sendGroupMessage = async (req, res) => {
       "fullName ProfilePic userId"
     );
 
-    // Emit to all group members
+    // Send real-time updates and queue offline messages
     group.members.forEach((memberId) => {
-      const memberSocketId =
-        userSocketMap.get && userSocketMap.get(String(memberId));
-      if (memberSocketId) {
-        io.to(memberSocketId).emit("newGroupMessage", populatedMessage);
+      if (String(memberId) === String(senderId)) return;
+      const socketId = userSocketMap.get(String(memberId));
+      if (socketId) {
+        io.to(socketId).emit("newGroupMessage", populatedMessage);
+      } else {
+        // Queue message for offline member
+        publishOfflineMessage({
+          type: "group_message",
+          messageId: populatedMessage._id,
+          groupId: group._id,
+          groupName: group.name,
+          senderId: senderId,
+          receiverId: String(memberId),
+          text: text || (image ? "Sent an image" : "Sent a voice message"),
+          timestamp: new Date().toISOString()
+        });
       }
     });
 

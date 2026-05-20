@@ -2,6 +2,7 @@ import Message from "../models/Message.js";
 import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js";
 import { io, userSocketMap } from "../server.js";
+import { publishOfflineMessage } from "../lib/amqp.js";
 import { getOrSetCache } from "../lib/redis.js";
 
 export const getUsersForSidebar = async (req, res) => {
@@ -211,6 +212,16 @@ export const sendMessage = async (req, res) => {
     const receiverSocketId = userSocketMap.get && userSocketMap.get(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
+    } else {
+      // Receiver is offline, queue the message for push notification or background processing
+      publishOfflineMessage({
+        type: "direct_message",
+        messageId: newMessage._id,
+        senderId: senderId,
+        receiverId: receiverId,
+        text: text || (image ? "Sent an image" : "Sent a voice message"),
+        timestamp: new Date().toISOString()
+      });
     }
 
     res.status(201).json({ message: "Message sent successfully.", newMessage });

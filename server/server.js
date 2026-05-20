@@ -13,6 +13,7 @@ import geminiRouter from "./routes/geminiRouter.js";
 import { redis } from "./lib/redis.js";
 import cron from "node-cron";
 import { buildAllIndexes } from "./scripts/buildIndexes.js";
+import { connectAMQP, getAMQPChannel } from "./lib/amqp.js";
 const app = express();
 const server = http.createServer(app);
 
@@ -217,6 +218,34 @@ server.listen(PORT, async () => {
     console.log("Cleared stale online users from Redis");
   } catch (e) {
     console.error("Failed to clear online users from Redis:", e);
+  }
+
+  // Connect to CloudAMQP and start the offline message consumer worker
+  try {
+    const amqpChannel = await connectAMQP();
+    if (amqpChannel) {
+      console.log("Starting AMQP worker for offline push notifications...");
+      amqpChannel.consume("offline_messages", (msg) => {
+        if (msg !== null) {
+          try {
+            const payload = JSON.parse(msg.content.toString());
+            console.log(`\n[AMQP WORKER] Received offline message for User ID: ${payload.receiverId}`);
+            console.log(`[AMQP WORKER] Action: Triggering Push Notification / Email to User...`);
+            console.log(`[AMQP WORKER] Message Text: "${payload.text}"`);
+            
+            // TODO: Integrate Firebase Cloud Messaging (FCM) or Nodemailer here!
+
+            // Acknowledge the message so it's removed from the queue
+            amqpChannel.ack(msg);
+          } catch (err) {
+            console.error("Error processing AMQP message:", err);
+            // If it's a fatal error, you could nack it: amqpChannel.nack(msg);
+          }
+        }
+      });
+    }
+  } catch (e) {
+    console.error("Failed to start AMQP worker:", e);
   }
 
   // Schedule MongoDB Index building every day at 2:30 AM IST
